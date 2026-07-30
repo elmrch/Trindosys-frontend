@@ -1,0 +1,149 @@
+@if (conversation(); as conv) {
+  <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+      <span class="relative shrink-0">
+        <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white">
+          {{ getInitials(conv.customer.name) }}
+        </span>
+        <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-success-500 dark:border-gray-900"></span>
+      </span>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <p class="truncate text-sm font-semibold text-gray-800 dark:text-white">{{ conv.customer.name }}</p>
+          <span class="rounded-full bg-success-50 px-2 py-0.5 text-[11px] font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
+            En línea
+          </span>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ conv.customer.phone }} · {{ conv.channelCode }}</p>
+      </div>
+    </div>
+
+    <div #messagesContainer class="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+      @if (hasMoreOlder()) {
+        <div class="flex justify-center pb-2">
+          <button
+            type="button"
+            [disabled]="isLoadingOlder()"
+            class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-60 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+            (click)="loadOlder.emit()"
+          >
+            {{ isLoadingOlder() ? 'Cargando...' : 'Cargar mensajes anteriores' }}
+          </button>
+        </div>
+      }
+
+      @for (message of messages(); track message.id) {
+        <div class="flex" [class]="isOutbound(message) ? 'justify-end' : 'justify-start'">
+          <div class="max-w-[75%]">
+            <div
+              class="rounded-2xl px-4 py-2 text-sm"
+              [class]="
+                isOutbound(message)
+                  ? 'bg-brand-500 text-white rounded-br-sm'
+                  : 'bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-gray-100 rounded-bl-sm'
+              "
+            >
+              <p class="whitespace-pre-wrap break-words">{{ message.content }}</p>
+              @if (message.attachments.length) {
+                <ul class="mt-1.5 space-y-1">
+                  @for (attachment of message.attachments; track attachment.url) {
+                    <li>
+                      <a
+                        [href]="attachment.url"
+                        target="_blank"
+                        rel="noopener"
+                        class="text-xs underline"
+                        [class]="isOutbound(message) ? 'text-white' : 'text-brand-600 dark:text-brand-400'"
+                      >
+                        {{ attachment.fileName }}
+                      </a>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+            <p
+              class="mt-1 text-[11px] text-gray-400"
+              [class]="isOutbound(message) ? 'text-right' : 'text-left'"
+            >
+              {{ message.createdAt | date: 'HH:mm' }} · {{ message.deliveryStatus }}
+            </p>
+          </div>
+        </div>
+      } @empty {
+        <p class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">Sin mensajes todavía.</p>
+      }
+    </div>
+
+    @if (attachmentError()) {
+      <p class="border-t border-gray-100 px-4 pt-3 text-xs font-medium text-red-600 dark:border-gray-800">
+        {{ attachmentError() }}
+      </p>
+    }
+
+    @if (selectedFiles().length) {
+      <div class="flex flex-wrap gap-2 border-t border-gray-100 px-4 pt-3 dark:border-gray-800">
+        @for (file of selectedFiles(); track file.name + file.size) {
+          <span
+            class="flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-white/5 dark:text-gray-300"
+          >
+            {{ file.name }}
+            <button
+              type="button"
+              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              (click)="removeFile(file)"
+              aria-label="Quitar archivo"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </span>
+        }
+      </div>
+    }
+
+    <form class="flex items-center gap-2 border-t border-gray-100 p-4 dark:border-gray-800" (ngSubmit)="onSubmit()">
+      <input #fileInput type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
+      <button
+        type="button"
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+        (click)="fileInput.click()"
+        aria-label="Adjuntar archivo"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="m17.5 7.5-8 8a3 3 0 0 0 4.24 4.24l8.5-8.5a5 5 0 0 0-7.07-7.07l-8.5 8.5a7 7 0 0 0 9.9 9.9"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <input
+        type="text"
+        placeholder="Escribe un mensaje..."
+        [value]="draft()"
+        (input)="draft.set($any($event.target).value)"
+        class="h-10 flex-1 rounded-lg border border-gray-200 bg-transparent px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-800 dark:text-white"
+      />
+      <button
+        type="submit"
+        [disabled]="isSending()"
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-60"
+        aria-label="Enviar mensaje"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="m4 12 16-8-6 8 6 8-16-8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </form>
+  </div>
+} @else {
+  <div
+    class="flex h-full flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white text-center dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <p class="text-sm text-gray-500 dark:text-gray-400">Selecciona una conversación para ver los mensajes.</p>
+  </div>
+}

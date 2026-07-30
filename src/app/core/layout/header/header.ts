@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../auth/auth.service';
+import { getInitials } from '../../../shared/utils/initials.util';
 
 @Component({
   selector: 'app-header',
@@ -182,15 +183,7 @@ export class Header {
     if (!user) {
       return '?';
     }
-    if (user.fullName) {
-      return user.fullName
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase())
-        .join('');
-    }
-    return user.email.slice(0, 2).toUpperCase();
+    return user.fullName ? getInitials(user.fullName) : user.email.slice(0, 2).toUpperCase();
   });
 
   protected readonly menuItems: { label: string; icon: SafeHtml }[] = [

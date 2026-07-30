@@ -1,0 +1,66 @@
+<div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="border-b border-gray-100 p-4 dark:border-gray-800">
+    <div class="relative">
+      <svg
+        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6" />
+        <path d="m20 20-3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </svg>
+      <input
+        type="text"
+        placeholder="Buscar conversaciones..."
+        [value]="searchTerm()"
+        (input)="searchTerm.set($any($event.target).value)"
+        class="h-10 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-800 dark:text-white"
+      />
+    </div>
+  </div>
+
+  <div class="min-h-0 flex-1 overflow-y-auto">
+    @for (conversation of filteredConversations(); track conversation.id) {
+      <button
+        type="button"
+        class="flex w-full items-start gap-3 border-b border-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:border-gray-800/60 dark:hover:bg-white/5"
+        [class]="
+          conversation.id === selectedId()
+            ? 'bg-brand-50 dark:bg-brand-500/10'
+            : ''
+        "
+        (click)="select.emit(conversation)"
+      >
+        <span class="relative shrink-0">
+          <span
+            class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-white"
+          >
+            {{ getInitials(conversation.customer.name) }}
+          </span>
+          <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-success-500 dark:border-gray-900"></span>
+        </span>
+
+        <span class="min-w-0 flex-1">
+          <span class="flex items-center justify-between gap-2">
+            <span class="truncate text-sm font-medium text-gray-800 dark:text-white">{{ conversation.customer.name }}</span>
+            <span class="shrink-0 text-xs text-gray-400">{{ formatRelativeTime(conversation.lastActivityAt) }}</span>
+          </span>
+          <span class="mt-0.5 block truncate text-xs text-gray-500 dark:text-gray-400">
+            {{ conversation.lastMessagePreview || 'Sin mensajes todavía' }}
+          </span>
+          <span class="mt-1.5 flex items-center gap-1.5">
+            <span
+              class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400"
+            >
+              {{ conversation.channelCode }}
+            </span>
+            <app-active-agent-indicator [advisorId]="conversation.advisorId" />
+          </span>
+        </span>
+      </button>
+    } @empty {
+      <p class="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">No hay conversaciones.</p>
+    }
+  </div>
+</div>

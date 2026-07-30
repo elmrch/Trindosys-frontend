@@ -10,9 +10,9 @@ import { SidebarService } from '../../services/sidebar.service';
   template: `
     <div class="flex min-h-screen">
       <app-sidebar />
-      <div class="flex w-full flex-1 flex-col">
+      <div class="flex w-full min-w-0 flex-1 flex-col">
         <app-header />
-        <main class="flex-1 p-4 md:p-6">
+        <main class="min-w-0 flex-1 p-4 md:p-6">
           <router-outlet />
         </main>
       </div>

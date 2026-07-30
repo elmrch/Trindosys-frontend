@@ -1,0 +1,30 @@
+<div class="space-y-4">
+  <div>
+    <h1 class="text-xl font-semibold text-gray-800 dark:text-white">Conversaciones</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Bandeja unificada de todos tus canales.</p>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+  }
+
+  <div class="grid h-[75vh] min-h-0 grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]">
+    <app-unified-inbox
+      class="min-h-0"
+      [conversations]="conversations()"
+      [selectedId]="selectedConversation()?.id ?? null"
+      (select)="selectConversation($event)"
+    />
+    <app-chat-panel
+      class="min-h-0"
+      [conversation]="selectedConversation()"
+      [messages]="messages()"
+      [hasMoreOlder]="hasMoreOlder()"
+      [isLoadingOlder]="isLoadingOlder()"
+      [isSending]="isSending()"
+      (send)="sendMessage($event)"
+      (sendAttachments)="sendAttachments($event)"
+      (loadOlder)="loadOlderMessages()"
+    />
+  </div>
+</div>

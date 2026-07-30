@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { CurrentUser, LoginRequest, LoginResponse } from './auth.model';
 
 const TOKEN_KEY = 'trindosys-token';
+const TOKEN_TYPE_KEY = 'trindosys-token-type';
 const USER_KEY = 'trindosys-user';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +31,10 @@ export class AuthService {
     return localStorage.getItem(TOKEN_KEY);
   }
 
+  getTokenType(): string {
+    return localStorage.getItem(TOKEN_TYPE_KEY) || 'Bearer';
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
@@ -37,12 +42,14 @@ export class AuthService {
   private storeSession(response: LoginResponse): void {
     const user: CurrentUser = { email: response.email, fullName: response.fullName, role: response.role };
     localStorage.setItem(TOKEN_KEY, response.token);
+    localStorage.setItem(TOKEN_TYPE_KEY, response.tokenType || 'Bearer');
     localStorage.setItem(USER_KEY, JSON.stringify(user));
     this.currentUser.set(user);
   }
 
   private clearSession(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_TYPE_KEY);
     localStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
   }

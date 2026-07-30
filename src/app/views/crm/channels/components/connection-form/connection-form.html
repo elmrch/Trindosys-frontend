@@ -1,0 +1,93 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="cancel.emit()">
+  <div
+    class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-800 dark:bg-gray-900"
+    (click)="$event.stopPropagation()"
+  >
+    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
+      {{ isEditMode() ? 'Editar conexión' : 'Nueva conexión' }}
+    </h2>
+
+    <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      @if (errorMessage()) {
+        <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+      }
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Canal</label>
+        <select
+          formControlName="channelId"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        >
+          <option [ngValue]="0" disabled>Selecciona un canal</option>
+          @for (channel of channels(); track channel.id) {
+            <option [ngValue]="channel.id">{{ channel.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
+        <input
+          type="text"
+          formControlName="name"
+          placeholder="Ej. WhatsApp Ventas"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">External ID</label>
+        <input
+          type="text"
+          formControlName="externalId"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Token</label>
+        <input
+          type="text"
+          formControlName="token"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+        @if (connection(); as existing) {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Token actual: {{ existing.maskedToken }} — ingrésalo de nuevo para actualizarlo.
+          </p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL (opcional)</label>
+        <input
+          type="text"
+          formControlName="webhookUrl"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+      </div>
+
+      <label class="flex items-center gap-2">
+        <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-gray-300 accent-brand-500" />
+        <span class="text-sm text-gray-700 dark:text-gray-300">Conexión activa</span>
+      </label>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="cancel.emit()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="isSubmitting()"
+          class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ isSubmitting() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,132 @@
+<div class="overflow-auto" style="max-height: 520px">
+  <table class="w-full min-w-[860px] text-left text-sm">
+    <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+      <tr class="border-b border-gray-200 dark:border-gray-700">
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="onSort('channel')"
+        >
+          <span class="flex items-center gap-1">
+            Canal
+            <span [class]="sortColumn() === 'channel' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('channel')
+            }}</span>
+          </span>
+        </th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="onSort('name')"
+        >
+          <span class="flex items-center gap-1">
+            Nombre
+            <span [class]="sortColumn() === 'name' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('name')
+            }}</span>
+          </span>
+        </th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="onSort('externalId')"
+        >
+          <span class="flex items-center gap-1">
+            External ID
+            <span [class]="sortColumn() === 'externalId' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('externalId')
+            }}</span>
+          </span>
+        </th>
+        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Token</th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="onSort('active')"
+        >
+          <span class="flex items-center gap-1">
+            Estado
+            <span [class]="sortColumn() === 'active' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('active')
+            }}</span>
+          </span>
+        </th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="onSort('createdAt')"
+        >
+          <span class="flex items-center gap-1">
+            Creado
+            <span [class]="sortColumn() === 'createdAt' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('createdAt')
+            }}</span>
+          </span>
+        </th>
+        <th class="whitespace-nowrap px-5 py-3 text-right font-medium text-gray-600 dark:text-gray-300">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      @for (connection of sortedConnections(); track connection.id) {
+        <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
+          <td class="px-5 py-3 text-gray-700 dark:text-gray-200">{{ connection.channelName }}</td>
+          <td class="px-5 py-3 font-medium text-gray-700 dark:text-gray-200">{{ connection.name }}</td>
+          <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ connection.externalId }}</td>
+          <td class="px-5 py-3 font-mono text-gray-500 dark:text-gray-400">{{ connection.maskedToken }}</td>
+          <td class="px-5 py-3">
+            <span
+              class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+              [class]="
+                connection.active
+                  ? 'bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500'
+                  : 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400'
+              "
+            >
+              {{ connection.active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap px-5 py-3 text-gray-500 dark:text-gray-400">
+            {{ connection.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td class="px-5 py-3 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button
+                type="button"
+                class="rounded-lg border border-gray-200 p-1.5 text-brand-600 transition-colors hover:bg-brand-50 dark:border-gray-700 dark:text-brand-400 dark:hover:bg-white/5"
+                title="Editar"
+                (click)="edit.emit(connection)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M4 20h4l10.5-10.5a2.121 2.121 0 0 0-3-3L5 17v3Z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="rounded-lg border border-error-500/30 p-1.5 text-error-600 transition-colors hover:bg-error-50 dark:text-error-500 dark:hover:bg-error-500/10"
+                title="Eliminar"
+                (click)="delete.emit(connection)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-.7 12.1a2 2 0 0 1-2 1.9H9.7a2 2 0 0 1-2-1.9L7 7h10Z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+            No hay conexiones para mostrar.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

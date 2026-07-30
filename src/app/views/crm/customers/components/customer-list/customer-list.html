@@ -1,0 +1,120 @@
+<div class="overflow-auto" style="max-height: 520px">
+  <table class="w-full min-w-[900px] text-left text-sm">
+    <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+      <tr class="border-b border-gray-200 dark:border-gray-700">
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="sort.emit('name')"
+        >
+          <span class="flex items-center gap-1">
+            Cliente
+            <span [class]="sortColumn() === 'name' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('name')
+            }}</span>
+          </span>
+        </th>
+        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Teléfono</th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="sort.emit('company')"
+        >
+          <span class="flex items-center gap-1">
+            Empresa
+            <span [class]="sortColumn() === 'company' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('company')
+            }}</span>
+          </span>
+        </th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="sort.emit('status')"
+        >
+          <span class="flex items-center gap-1">
+            Estado
+            <span [class]="sortColumn() === 'status' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('status')
+            }}</span>
+          </span>
+        </th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="sort.emit('createdAt')"
+        >
+          <span class="flex items-center gap-1">
+            Creado
+            <span [class]="sortColumn() === 'createdAt' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('createdAt')
+            }}</span>
+          </span>
+        </th>
+        <th class="whitespace-nowrap px-5 py-3 text-right font-medium text-gray-600 dark:text-gray-300">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      @for (customer of customers(); track customer.id) {
+        <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
+          <td class="px-5 py-3">
+            <div class="font-medium text-gray-800 dark:text-white">{{ customer.name }}</div>
+            @if (customer.email) {
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ customer.email }}</div>
+            }
+          </td>
+          <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ customer.phone || '—' }}</td>
+          <td class="px-5 py-3">
+            <div class="text-gray-700 dark:text-gray-200">{{ customer.company || '—' }}</div>
+            @if (customer.sourceCampaign) {
+              <div class="text-xs text-gray-500 dark:text-gray-400">Campaña: {{ customer.sourceCampaign }}</div>
+            }
+          </td>
+          <td class="px-5 py-3">
+            <span class="rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="statusClass(customer)">
+              {{ customer.status }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap px-5 py-3 text-gray-500 dark:text-gray-400">
+            {{ customer.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td class="px-5 py-3 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button
+                type="button"
+                class="rounded-lg border border-gray-200 p-1.5 text-brand-600 transition-colors hover:bg-brand-50 dark:border-gray-700 dark:text-brand-400 dark:hover:bg-white/5"
+                title="Editar"
+                (click)="edit.emit(customer)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M4 20h4l10.5-10.5a2.121 2.121 0 0 0-3-3L5 17v3Z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+              @if (isActive(customer)) {
+                <button
+                  type="button"
+                  class="rounded-lg border border-error-500/30 p-1.5 text-error-600 transition-colors hover:bg-error-50 dark:text-error-500 dark:hover:bg-error-500/10"
+                  title="Desactivar"
+                  (click)="deactivate.emit(customer)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
+                    <path d="m5.6 5.6 12.8 12.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                  </svg>
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+            No hay clientes para mostrar.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
