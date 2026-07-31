@@ -30,9 +30,10 @@ export class Conversations implements OnInit {
   ngOnInit(): void {
     this.loadConversations();
 
-    this.socket.connect();
+    // El socket ya está conectado a nivel de AppLayout (vive mientras haya
+    // sesión); acá solo nos suscribimos a los eventos y marcamos como leído.
     this.socket.events$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => this.onInboxEvent(event));
-    this.destroyRef.onDestroy(() => this.socket.disconnect());
+    this.socket.markAllRead();
   }
 
   protected loadConversations(): void {
@@ -119,6 +120,9 @@ export class Conversations implements OnInit {
     if (event.type !== 'new_message') {
       return;
     }
+
+    // Ya estamos viendo la bandeja, así que no debe acumularse el badge.
+    this.socket.markAllRead();
 
     this.conversations.update((list) => {
       const exists = list.some((c) => c.id === event.conversation.id);

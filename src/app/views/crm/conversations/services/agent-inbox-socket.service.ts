@@ -11,6 +11,7 @@ export class AgentInboxSocketService {
   private readonly eventsSubject = new Subject<AgentInboxEvent>();
   readonly events$ = this.eventsSubject.asObservable();
   readonly isConnected = signal(false);
+  readonly unreadCount = signal(0);
 
   connect(): void {
     if (this.socket) {
@@ -39,7 +40,11 @@ export class AgentInboxSocketService {
 
     socket.onmessage = (event) => {
       try {
-        this.eventsSubject.next(JSON.parse(event.data) as AgentInboxEvent);
+        const payload = JSON.parse(event.data) as AgentInboxEvent;
+        if (payload.type === 'new_message') {
+          this.unreadCount.update((count) => count + 1);
+        }
+        this.eventsSubject.next(payload);
       } catch {
         // Ignore malformed payloads.
       }
@@ -52,5 +57,9 @@ export class AgentInboxSocketService {
     this.socket?.close();
     this.socket = null;
     this.isConnected.set(false);
+  }
+
+  markAllRead(): void {
+    this.unreadCount.set(0);
   }
 }
