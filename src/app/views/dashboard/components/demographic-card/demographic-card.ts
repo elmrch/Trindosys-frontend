@@ -13,8 +13,8 @@ interface CountryStat {
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Clientes por país</h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Número de clientes según ubicación</p>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Contactos por país</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Número de Contactos según ubicación</p>
         </div>
         <button
           type="button"
@@ -45,7 +45,7 @@ interface CountryStat {
               <span class="text-2xl leading-none">{{ item.flag }}</span>
               <div>
                 <p class="text-sm font-semibold text-gray-800 dark:text-white">{{ item.country }}</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.customers }} Clientes</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ item.customers }} Contactos</p>
               </div>
             </div>
             <div class="flex w-[100px] items-center gap-2">

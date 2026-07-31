@@ -4,7 +4,7 @@
     (click)="$event.stopPropagation()"
   >
     <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
-      {{ isEditMode() ? 'Editar cliente' : 'Nuevo cliente' }}
+      {{ isEditMode() ? 'Editar Contacto' : 'Nuevo Contacto' }}
     </h2>
 
     <form class="mt-4 max-h-[70vh] space-y-4 overflow-y-auto pr-1" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>

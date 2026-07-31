@@ -39,7 +39,7 @@ import { Component } from '@angular/core';
 })
 export class EcommerceMetrics {
   protected readonly metrics = [
-    { label: 'Clientes', value: '3,782', trend: 11.01, icon: '👥' },
+    { label: 'Contactos', value: '3,782', trend: 11.01, icon: '👥' },
     { label: 'Pedidos', value: '5,359', trend: -9.05, icon: '📦' },
   ];
 }

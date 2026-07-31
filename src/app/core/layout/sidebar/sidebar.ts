@@ -78,7 +78,7 @@ import { AgentInboxSocketService } from '../../../views/crm/conversations/servic
                 />
               </svg>
               @if (sidebar.isSidebarVisible) {
-                <span>Clientes</span>
+                <span>Contactos</span>
               }
             </a>
           </li>

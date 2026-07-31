@@ -5,12 +5,14 @@ import { loginRoutes } from './views/login/login.routes';
 import { channelsRoutes } from './views/crm/channels/channels.routes';
 import { conversationsRoutes } from './views/crm/conversations/conversations.routes';
 import { customersRoutes } from './views/crm/customers/customers.routes';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   ...loginRoutes,
   {
     path: '',
     component: AppLayout,
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       ...dashboardRoutes,

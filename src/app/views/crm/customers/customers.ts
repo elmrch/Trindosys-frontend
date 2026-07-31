@@ -59,7 +59,7 @@ export class Customers implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
-        this.errorMessage.set('No se pudieron cargar los clientes.');
+        this.errorMessage.set('No se pudieron cargar los Contactos.');
       },
     });
   }
