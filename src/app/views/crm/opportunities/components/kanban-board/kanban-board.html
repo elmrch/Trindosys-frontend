@@ -1,0 +1,44 @@
+<div #board class="flex h-full gap-4 overflow-x-auto pb-2" (dragover)="onBoardDragOver($event, board)">
+  @for (stage of stages(); track stage.id) {
+    <div
+      class="flex h-full w-72 shrink-0 flex-col rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.02]"
+      [class]="dragOverStageId() === stage.id ? 'ring-2 ring-brand-500' : ''"
+      (dragover)="onDragOver(stage, $event)"
+      (dragleave)="onDragLeave(stage)"
+      (drop)="onDrop(stage, $event)"
+    >
+      <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2.5 dark:border-gray-800">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <p class="truncate text-sm font-semibold text-gray-700 dark:text-gray-200">{{ stage.name }}</p>
+            @if (stage.type !== 'OPEN') {
+              <span class="rounded-full px-1.5 py-0.5 text-[10px] font-medium" [class]="stageBadgeClass(stage)">
+                {{ stage.type === 'WON' ? 'Ganada' : 'Perdida' }}
+              </span>
+            }
+          </div>
+          <p class="text-xs text-gray-400">
+            {{ columnOpportunities(stage).length }} · {{ columnTotal(stage) | currency: 'PEN' : 'S/ ' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
+        @for (opportunity of columnOpportunities(stage); track opportunity.id) {
+          <app-opportunity-card
+            [opportunity]="opportunity"
+            [advisors]="advisors()"
+            (open)="openCard.emit($event)"
+            (dragStart)="onDragStart($event)"
+          />
+        } @empty {
+          <p class="px-2 py-6 text-center text-xs text-gray-400">Sin oportunidades</p>
+        }
+      </div>
+    </div>
+  } @empty {
+    <p class="p-6 text-sm text-gray-500 dark:text-gray-400">
+      No hay etapas configuradas en el pipeline todavía.
+    </p>
+  }
+</div>

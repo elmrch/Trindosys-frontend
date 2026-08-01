@@ -1,10 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AgentInboxSocketService } from '../../../core/services/agent-inbox-socket.service';
+import { Advisor } from '../../../shared/models/advisor.model';
+import { AdvisorService } from '../../../shared/services/advisor.service';
 import { ChatPanel } from './components/chat-panel/chat-panel';
 import { UnifiedInbox } from './components/unified-inbox/unified-inbox';
 import { AgentInboxEvent, ConversationSummary, Message } from './models/conversation.model';
-import { AgentInboxSocketService } from './services/agent-inbox-socket.service';
 import { ConversationService } from './services/conversation.service';
 
 @Component({
@@ -14,6 +16,7 @@ import { ConversationService } from './services/conversation.service';
 })
 export class Conversations implements OnInit {
   private readonly conversationService = inject(ConversationService);
+  private readonly advisorService = inject(AdvisorService);
   private readonly socket = inject(AgentInboxSocketService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -25,14 +28,22 @@ export class Conversations implements OnInit {
   protected readonly isSending = signal(false);
   protected readonly hasMoreOlder = signal(false);
 
+  protected readonly advisors = signal<Advisor[]>([]);
+  // TODO: gatear a solo admin en cuanto se confirme el valor exacto del rol
+  // (mismo caso pendiente que el filtro de SuperAdmin en Canales).
+  protected readonly canAssign = signal(true);
+
   private currentPage = 0;
 
   ngOnInit(): void {
     this.loadConversations();
+    this.loadAdvisors();
 
     // El socket ya está conectado a nivel de AppLayout (vive mientras haya
     // sesión); acá solo nos suscribimos a los eventos y marcamos como leído.
-    this.socket.events$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => this.onInboxEvent(event));
+    this.socket.events$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => this.onInboxEvent(event as AgentInboxEvent));
     this.socket.markAllRead();
   }
 
@@ -41,6 +52,15 @@ export class Conversations implements OnInit {
     this.conversationService.list().subscribe({
       next: (list) => this.conversations.set(this.sortByActivity(list)),
       error: () => this.errorMessage.set('No se pudieron cargar las conversaciones.'),
+    });
+  }
+
+  protected loadAdvisors(): void {
+    this.advisorService.list().subscribe({
+      next: (advisors) => this.advisors.set(advisors),
+      error: () => {
+        // No bloqueamos la bandeja si falla esto — simplemente no se podrá asignar.
+      },
     });
   }
 
@@ -100,6 +120,13 @@ export class Conversations implements OnInit {
     });
   }
 
+  protected assignAdvisor(payload: { conversation: ConversationSummary; advisorId: number | null }): void {
+    this.conversationService.assign(payload.conversation.id, payload.advisorId).subscribe({
+      next: (updated) => this.applyConversationUpdate(updated),
+      error: () => this.errorMessage.set('No se pudo asignar la conversación.'),
+    });
+  }
+
   private loadMessages(conversationId: number, page: number, prepend = false): void {
     this.conversationService.getMessages(conversationId, page).subscribe({
       next: (result) => {
@@ -117,23 +144,33 @@ export class Conversations implements OnInit {
   }
 
   private onInboxEvent(event: AgentInboxEvent): void {
-    if (event.type !== 'new_message') {
+    if (event.type !== 'new_message' && event.type !== 'conversation_assigned') {
       return;
     }
 
-    // Ya estamos viendo la bandeja, así que no debe acumularse el badge.
-    this.socket.markAllRead();
+    this.applyConversationUpdate(event.conversation);
 
+    if (event.type === 'new_message') {
+      // Ya estamos viendo la bandeja, así que no debe acumularse el badge.
+      this.socket.markAllRead();
+
+      if (this.selectedConversation()?.id === event.conversation.id && event.message) {
+        this.appendMessage(event.message);
+      }
+    }
+  }
+
+  private applyConversationUpdate(conversation: ConversationSummary): void {
     this.conversations.update((list) => {
-      const exists = list.some((c) => c.id === event.conversation.id);
+      const exists = list.some((c) => c.id === conversation.id);
       const updated = exists
-        ? list.map((c) => (c.id === event.conversation.id ? event.conversation : c))
-        : [event.conversation, ...list];
+        ? list.map((c) => (c.id === conversation.id ? conversation : c))
+        : [conversation, ...list];
       return this.sortByActivity(updated);
     });
 
-    if (this.selectedConversation()?.id === event.conversation.id) {
-      this.appendMessage(event.message);
+    if (this.selectedConversation()?.id === conversation.id) {
+      this.selectedConversation.set(conversation);
     }
   }
 

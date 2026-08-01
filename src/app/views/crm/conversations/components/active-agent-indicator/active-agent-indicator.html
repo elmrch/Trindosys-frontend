@@ -1,9 +1,26 @@
-@if (advisorId(); as id) {
+@if (canAssign()) {
+  <select
+    [value]="advisorId() ?? ''"
+    (click)="$event.stopPropagation()"
+    (change)="onSelectChange($any($event.target).value); $event.stopPropagation()"
+    class="rounded-full border-0 py-0.5 pl-2 pr-5 text-[11px] font-medium focus:outline-none focus:ring-1 focus:ring-brand-500"
+    [class]="
+      advisorId()
+        ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400'
+        : 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400'
+    "
+  >
+    <option value="">Sin asignar</option>
+    @for (advisor of advisors(); track advisor.id) {
+      <option [value]="advisor.id">{{ advisor.fullName }}</option>
+    }
+  </select>
+} @else if (advisorId()) {
   <span
     class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
   >
     <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
-    Asesor #{{ id }}
+    {{ advisorName() }}
   </span>
 } @else {
   <span

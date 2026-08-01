@@ -1,8 +1,4 @@
-export interface CustomerSummary {
-  id: number;
-  name: string;
-  phone: string;
-}
+import { CustomerSummary } from '../../../../shared/models/customer-summary.model';
 
 export interface ConversationSummary {
   id: number;
@@ -39,5 +35,9 @@ export interface SendMessageRequest {
 export interface AgentInboxEvent {
   type: string;
   conversation: ConversationSummary;
-  message: Message;
+  message?: Message;
+}
+
+export interface AssignConversationRequest {
+  advisorId: number | null;
 }

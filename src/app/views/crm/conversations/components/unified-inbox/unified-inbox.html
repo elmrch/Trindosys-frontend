@@ -55,7 +55,12 @@
             >
               {{ conversation.channelCode }}
             </span>
-            <app-active-agent-indicator [advisorId]="conversation.advisorId" />
+            <app-active-agent-indicator
+              [advisorId]="conversation.advisorId"
+              [advisors]="advisors()"
+              [canAssign]="canAssign()"
+              (assign)="onAssign(conversation, $event)"
+            />
           </span>
         </span>
       </button>

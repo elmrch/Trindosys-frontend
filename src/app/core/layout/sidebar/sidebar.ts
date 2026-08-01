@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
-import { AgentInboxSocketService } from '../../../views/crm/conversations/services/agent-inbox-socket.service';
+import { AgentInboxSocketService } from '../../services/agent-inbox-socket.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -79,6 +79,27 @@ import { AgentInboxSocketService } from '../../../views/crm/conversations/servic
               </svg>
               @if (sidebar.isSidebarVisible) {
                 <span>Contactos</span>
+              }
+            </a>
+          </li>
+          <li>
+            <a
+              routerLink="/crm/opportunities"
+              routerLinkActive="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
+              [class.justify-center]="!sidebar.isSidebarVisible"
+            >
+              <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M4 19V9m6 10V5m6 14v-6"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              @if (sidebar.isSidebarVisible) {
+                <span>Oportunidades</span>
               }
             </a>
           </li>

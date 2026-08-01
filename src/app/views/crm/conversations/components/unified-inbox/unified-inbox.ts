@@ -1,4 +1,5 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { Advisor } from '../../../../../shared/models/advisor.model';
 import { getInitials } from '../../../../../shared/utils/initials.util';
 import { formatRelativeTime } from '../../../../../shared/utils/relative-time.util';
 import { ConversationSummary } from '../../models/conversation.model';
@@ -12,7 +13,11 @@ import { ActiveAgentIndicator } from '../active-agent-indicator/active-agent-ind
 export class UnifiedInbox {
   readonly conversations = input.required<ConversationSummary[]>();
   readonly selectedId = input<number | null>(null);
+  readonly advisors = input<Advisor[]>([]);
+  readonly canAssign = input(false);
+
   readonly select = output<ConversationSummary>();
+  readonly assign = output<{ conversation: ConversationSummary; advisorId: number | null }>();
 
   protected readonly searchTerm = signal('');
 
@@ -24,4 +29,8 @@ export class UnifiedInbox {
 
   protected readonly getInitials = getInitials;
   protected readonly formatRelativeTime = formatRelativeTime;
+
+  protected onAssign(conversation: ConversationSummary, advisorId: number | null): void {
+    this.assign.emit({ conversation, advisorId });
+  }
 }

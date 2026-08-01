@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
 import { Header } from '../header/header';
 import { SidebarService } from '../../services/sidebar.service';
-import { AgentInboxSocketService } from '../../../views/crm/conversations/services/agent-inbox-socket.service';
+import { AgentInboxSocketService } from '../../services/agent-inbox-socket.service';
 
 @Component({
   selector: 'app-layout',

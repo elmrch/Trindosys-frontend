@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { Page } from '../../../../shared/models/page.model';
-import { ConversationSummary, Message, SendMessageRequest } from '../models/conversation.model';
+import { AssignConversationRequest, ConversationSummary, Message, SendMessageRequest } from '../models/conversation.model';
 
 @Injectable({ providedIn: 'root' })
 export class ConversationService {
@@ -35,5 +35,10 @@ export class ConversationService {
     formData.append('content', content);
     files.forEach((file) => formData.append('files', file));
     return this.http.post<Message>(`${this.baseUrl}/${conversationId}/messages/attachments`, formData);
+  }
+
+  assign(conversationId: number, advisorId: number | null): Observable<ConversationSummary> {
+    const request: AssignConversationRequest = { advisorId };
+    return this.http.patch<ConversationSummary>(`${this.baseUrl}/${conversationId}/assign`, request);
   }
 }

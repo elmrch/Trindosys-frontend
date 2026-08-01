@@ -5,6 +5,7 @@ import { loginRoutes } from './views/login/login.routes';
 import { channelsRoutes } from './views/crm/channels/channels.routes';
 import { conversationsRoutes } from './views/crm/conversations/conversations.routes';
 import { customersRoutes } from './views/crm/customers/customers.routes';
+import { opportunitiesRoutes } from './views/crm/opportunities/opportunities.routes';
 import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -19,6 +20,7 @@ export const routes: Routes = [
       ...channelsRoutes,
       ...conversationsRoutes,
       ...customersRoutes,
+      ...opportunitiesRoutes,
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

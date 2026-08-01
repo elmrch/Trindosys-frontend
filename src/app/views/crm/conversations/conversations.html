@@ -13,7 +13,10 @@
       class="min-h-0"
       [conversations]="conversations()"
       [selectedId]="selectedConversation()?.id ?? null"
+      [advisors]="advisors()"
+      [canAssign]="canAssign()"
       (select)="selectConversation($event)"
+      (assign)="assignAdvisor($event)"
     />
     <app-chat-panel
       class="min-h-0"
