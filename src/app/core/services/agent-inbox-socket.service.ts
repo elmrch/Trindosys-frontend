@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { NotificationSoundService } from './notification-sound.service';
 
 interface RealtimeEvent {
   type: string;
@@ -15,6 +16,7 @@ interface RealtimeEvent {
 @Injectable({ providedIn: 'root' })
 export class AgentInboxSocketService {
   private readonly authService = inject(AuthService);
+  private readonly notificationSound = inject(NotificationSoundService);
   private socket: WebSocket | null = null;
 
   private readonly eventsSubject = new Subject<RealtimeEvent>();
@@ -52,6 +54,7 @@ export class AgentInboxSocketService {
         const payload = JSON.parse(event.data) as RealtimeEvent;
         if (payload.type === 'new_message') {
           this.unreadCount.update((count) => count + 1);
+          this.notificationSound.playNewMessageTone();
         }
         this.eventsSubject.next(payload);
       } catch {
