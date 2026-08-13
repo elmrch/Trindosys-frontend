@@ -1,5 +1,7 @@
 import { CustomerSummary } from '../../../../shared/models/customer-summary.model';
 
+export type ConversationStatus = 'OPEN' | 'PENDING' | 'CLOSED';
+
 export interface ConversationSummary {
   id: number;
   customer: CustomerSummary;
@@ -8,6 +10,7 @@ export interface ConversationSummary {
   advisorId: number | null;
   lastActivityAt: string;
   lastMessagePreview: string;
+  unreadCount: number;
 }
 
 export interface MessageAttachment {
@@ -40,4 +43,8 @@ export interface AgentInboxEvent {
 
 export interface AssignConversationRequest {
   advisorId: number | null;
+}
+
+export interface UpdateConversationStatusRequest {
+  status: ConversationStatus;
 }

@@ -1,13 +1,33 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="cancel.emit()">
   <div
-    class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-800 dark:bg-gray-900"
+    class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
     (click)="$event.stopPropagation()"
   >
-    <h2 class="text-lg font-semibold text-gray-800 dark:text-white">
-      {{ isEditMode() ? 'Editar oportunidad' : 'Nueva oportunidad' }}
-    </h2>
+    <div class="flex items-center justify-between gap-3 bg-brand-500 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-white">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19V9m6 10V5m6 14v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <h2 class="text-base font-semibold text-white">
+          {{ isEditMode() ? 'Editar oportunidad' : 'Nueva oportunidad' }}
+        </h2>
+      </div>
+      <button
+        type="button"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+        (click)="cancel.emit()"
+        aria-label="Cerrar"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
 
-    <form class="mt-4 space-y-4" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="p-6">
+    <form class="space-y-4" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       @if (errorMessage()) {
         <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
       }
@@ -78,5 +98,6 @@
         </button>
       </div>
     </form>
+    </div>
   </div>
 </div>

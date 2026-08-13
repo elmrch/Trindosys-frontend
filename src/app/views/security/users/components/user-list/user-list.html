@@ -1,0 +1,86 @@
+<div class="overflow-auto" style="max-height: 520px">
+  <table class="w-full min-w-[820px] text-left text-sm">
+    <thead class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
+      <tr class="border-b border-gray-200 dark:border-gray-700">
+        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Usuario</th>
+        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Rol</th>
+        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Estado</th>
+        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Creado</th>
+        <th class="whitespace-nowrap px-5 py-3 text-right font-medium text-gray-600 dark:text-gray-300">Acciones</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      @for (user of users(); track user.id) {
+        <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
+          <td class="px-5 py-3">
+            <div class="font-medium text-gray-800 dark:text-white">{{ user.fullName || '—' }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</div>
+          </td>
+          <td class="px-5 py-3">
+            <span class="rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="roleClass(user)">
+              {{ user.role }}
+            </span>
+          </td>
+          <td class="px-5 py-3">
+            <span class="rounded-full px-2.5 py-0.5 text-xs font-medium" [class]="statusClass(user)">
+              {{ user.active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="whitespace-nowrap px-5 py-3 text-gray-500 dark:text-gray-400">
+            {{ user.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td class="px-5 py-3 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button
+                type="button"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
+                title="Editar"
+                (click)="edit.emit(user)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 7h-1a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <path
+                    d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97l-8.415 8.385v3h3l8.385-8.415Z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path d="M16 5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              @if (user.active) {
+                <button
+                  type="button"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                  title="Desactivar"
+                  (click)="toggleActive.emit(user)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
+                    <path d="m5.6 5.6 12.8 12.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                  </svg>
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-success-200 bg-success-50 text-success-600 transition-colors hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-500 dark:hover:bg-success-500/20"
+                  title="Reactivar"
+                  (click)="toggleActive.emit(user)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">No hay usuarios para mostrar.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

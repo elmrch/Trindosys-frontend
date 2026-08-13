@@ -1,0 +1,109 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="cancel.emit()">
+  <div
+    class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="flex items-center justify-between gap-3 bg-brand-500 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-white">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6" />
+            <path d="M4.5 20c1.3-4 4.2-6 7.5-6s6.2 2 7.5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+        </span>
+        <h2 class="text-base font-semibold text-white">
+          {{ isEditMode() ? 'Editar Usuario' : 'Nuevo Usuario' }}
+        </h2>
+      </div>
+      <button
+        type="button"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+        (click)="cancel.emit()"
+        aria-label="Cerrar"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="p-6">
+    <form class="max-h-[70vh] space-y-4 overflow-y-auto pr-1" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre completo</label>
+        <input
+          type="text"
+          formControlName="fullName"
+          placeholder="Nombre y apellido"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+        @if (form.controls.fullName.invalid && form.controls.fullName.touched) {
+          <p class="mt-1.5 text-xs font-medium text-red-600">El nombre es obligatorio.</p>
+        }
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Correo</label>
+        <input
+          type="email"
+          formControlName="email"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-white/5"
+        />
+        @if (isEditMode()) {
+          <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">El correo no se puede modificar.</p>
+        } @else if (form.controls.email.invalid && form.controls.email.touched) {
+          <p class="mt-1.5 text-xs font-medium text-red-600">Ingresa un correo válido.</p>
+        }
+      </div>
+
+      @if (!isEditMode()) {
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña</label>
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="Mínimo 8 caracteres"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <p class="mt-1.5 text-xs font-medium text-red-600">La contraseña debe tener al menos 8 caracteres.</p>
+          }
+        </div>
+      }
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Rol</label>
+        <select
+          formControlName="roleId"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        >
+          <option value="" disabled>Selecciona un rol</option>
+          @for (role of roles(); track role.id) {
+            <option [value]="role.id">{{ role.name }}</option>
+          }
+        </select>
+        @if (form.controls.roleId.invalid && form.controls.roleId.touched) {
+          <p class="mt-1.5 text-xs font-medium text-red-600">Selecciona un rol.</p>
+        }
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="cancel.emit()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="isSubmitting()"
+          class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {{ isSubmitting() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>

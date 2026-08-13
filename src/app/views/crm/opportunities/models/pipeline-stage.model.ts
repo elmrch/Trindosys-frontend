@@ -6,6 +6,12 @@ export interface PipelineStage {
   position: number;
   type: StageType;
   initial: boolean;
+  color: string | null;
+  probability: number | null;
+  createdAt: string;
+  createdBy: number | null;
+  updatedAt: string | null;
+  updatedBy: number | null;
 }
 
 export interface PipelineStageRequest {
@@ -13,4 +19,6 @@ export interface PipelineStageRequest {
   position?: number;
   type?: StageType;
   initial: boolean;
+  color?: string | null;
+  probability?: number | null;
 }

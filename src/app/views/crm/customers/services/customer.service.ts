@@ -2,8 +2,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { Opportunity } from '../../opportunities/models/opportunity.model';
 import { Page } from '../../../../shared/models/page.model';
-import { Customer, CustomerRequest } from '../models/customer.model';
+import { Customer, CustomerRequest, UpdateCustomerTagsRequest } from '../models/customer.model';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
@@ -35,5 +36,14 @@ export class CustomerService {
 
   deactivate(id: number): Observable<Customer> {
     return this.http.patch<Customer>(`${this.baseUrl}/${id}/deactivate`, {});
+  }
+
+  updateTags(id: number, tags: string[]): Observable<Customer> {
+    const request: UpdateCustomerTagsRequest = { tags };
+    return this.http.patch<Customer>(`${this.baseUrl}/${id}/tags`, request);
+  }
+
+  getOpportunities(id: number): Observable<Opportunity[]> {
+    return this.http.get<Opportunity[]>(`${this.baseUrl}/${id}/opportunities`);
   }
 }

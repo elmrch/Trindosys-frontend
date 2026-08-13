@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { forkJoin, map } from 'rxjs';
+import { SweetAlertService } from '../../../core/services/sweet-alert.service';
 import { ConnectionForm } from './components/connection-form/connection-form';
 import { ConnectionsList } from './components/connections-list/connections-list';
 import { Channel, ChannelConnectionWithChannel } from './models/channel.model';
@@ -14,6 +15,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
 })
 export class Channels implements OnInit {
   private readonly channelService = inject(ChannelService);
+  private readonly sweetAlert = inject(SweetAlertService);
 
   protected readonly channels = signal<Channel[]>([]);
   protected readonly connections = signal<ChannelConnectionWithChannel[]>([]);
@@ -104,13 +106,20 @@ export class Channels implements OnInit {
   }
 
   protected onDelete(connection: ChannelConnectionWithChannel): void {
-    if (!confirm(`¿Eliminar la conexión "${connection.name}"?`)) {
-      return;
-    }
-    this.channelService.deleteConnection(connection.id).subscribe({
-      next: () => this.loadAll(),
-      error: () => this.errorMessage.set('No se pudo eliminar la conexión.'),
-    });
+    this.sweetAlert
+      .confirm(`¿Eliminar la conexión "${connection.name}"?`, 'Esta acción no se puede deshacer.', 'Sí, eliminar')
+      .then((result) => {
+        if (!result.isConfirmed) {
+          return;
+        }
+        this.channelService.deleteConnection(connection.id).subscribe({
+          next: () => {
+            this.sweetAlert.toast('Conexión eliminada.');
+            this.loadAll();
+          },
+          error: () => this.sweetAlert.error('No se pudo eliminar la conexión.'),
+        });
+      });
   }
 
   private loadConnections(channels: Channel[]): void {

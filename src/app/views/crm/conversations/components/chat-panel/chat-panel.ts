@@ -2,10 +2,16 @@ import { DatePipe } from '@angular/common';
 import { Component, ElementRef, effect, input, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { getInitials } from '../../../../../shared/utils/initials.util';
-import { ConversationSummary, Message } from '../../models/conversation.model';
+import { ConversationStatus, ConversationSummary, Message, MessageAttachment } from '../../models/conversation.model';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
+
+const STATUS_OPTIONS: { label: string; value: ConversationStatus }[] = [
+  { label: 'Abierta', value: 'OPEN' },
+  { label: 'Pendiente', value: 'PENDING' },
+  { label: 'Resuelta', value: 'CLOSED' },
+];
 
 @Component({
   selector: 'app-chat-panel',
@@ -22,6 +28,10 @@ export class ChatPanel {
   readonly send = output<string>();
   readonly sendAttachments = output<{ content: string; files: File[] }>();
   readonly loadOlder = output<void>();
+  readonly statusChange = output<{ conversation: ConversationSummary; status: ConversationStatus }>();
+  readonly toggleProfile = output<void>();
+
+  protected readonly statusOptions = STATUS_OPTIONS;
 
   private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
 
@@ -61,6 +71,22 @@ export class ChatPanel {
 
   protected isOutbound(message: Message): boolean {
     return message.direction === 'OUTBOUND';
+  }
+
+  protected onStatusChange(value: string): void {
+    const conversation = this.conversation();
+    if (!conversation) {
+      return;
+    }
+    this.statusChange.emit({ conversation, status: value as ConversationStatus });
+  }
+
+  protected isImage(attachment: MessageAttachment): boolean {
+    return attachment.mimeType.startsWith('image/');
+  }
+
+  protected isAudio(attachment: MessageAttachment): boolean {
+    return attachment.mimeType.startsWith('audio/');
   }
 
   protected onFilesSelected(event: Event): void {

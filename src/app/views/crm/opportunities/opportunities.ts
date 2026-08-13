@@ -44,6 +44,10 @@ export class Opportunities implements OnInit {
   protected readonly lossReason = signal('');
   protected readonly isClosing = signal(false);
 
+  protected readonly filterAdvisorId = signal<string>('');
+  protected readonly filterFrom = signal<string>('');
+  protected readonly filterTo = signal<string>('');
+
   ngOnInit(): void {
     this.loadStages();
     this.loadOpportunities();
@@ -65,7 +69,12 @@ export class Opportunities implements OnInit {
   protected loadOpportunities(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
-    this.opportunityService.list().subscribe({
+
+    const advisorId = this.filterAdvisorId() ? Number(this.filterAdvisorId()) : undefined;
+    const from = this.filterFrom() ? new Date(`${this.filterFrom()}T00:00:00`).toISOString() : undefined;
+    const to = this.filterTo() ? new Date(`${this.filterTo()}T23:59:59`).toISOString() : undefined;
+
+    this.opportunityService.list(undefined, advisorId, from, to).subscribe({
       next: (list) => {
         this.opportunities.set(list);
         this.isLoading.set(false);
@@ -75,6 +84,17 @@ export class Opportunities implements OnInit {
         this.errorMessage.set('No se pudieron cargar las oportunidades.');
       },
     });
+  }
+
+  protected onFilterChange(): void {
+    this.loadOpportunities();
+  }
+
+  protected clearFilters(): void {
+    this.filterAdvisorId.set('');
+    this.filterFrom.set('');
+    this.filterTo.set('');
+    this.loadOpportunities();
   }
 
   protected openCreateForm(): void {

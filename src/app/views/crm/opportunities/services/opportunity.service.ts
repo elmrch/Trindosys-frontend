@@ -14,13 +14,19 @@ export class OpportunityService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/crm/opportunities`;
 
-  list(stageId?: number, advisorId?: number): Observable<Opportunity[]> {
+  list(stageId?: number, advisorId?: number, from?: string, to?: string): Observable<Opportunity[]> {
     let params = new HttpParams();
     if (stageId) {
       params = params.set('stageId', stageId);
     }
     if (advisorId) {
       params = params.set('advisorId', advisorId);
+    }
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
     }
     return this.http.get<Opportunity[]>(this.baseUrl, { params });
   }

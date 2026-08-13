@@ -47,6 +47,49 @@
     </div>
   </div>
 
+  <div class="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div>
+      <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Vendedor</label>
+      <select
+        [value]="filterAdvisorId()"
+        (change)="filterAdvisorId.set($any($event.target).value); onFilterChange()"
+        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      >
+        <option value="">Todos</option>
+        @for (advisor of advisors(); track advisor.id) {
+          <option [value]="advisor.id">{{ advisor.fullName }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Desde</label>
+      <input
+        type="date"
+        [value]="filterFrom()"
+        (change)="filterFrom.set($any($event.target).value); onFilterChange()"
+        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      />
+    </div>
+    <div>
+      <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Hasta</label>
+      <input
+        type="date"
+        [value]="filterTo()"
+        (change)="filterTo.set($any($event.target).value); onFilterChange()"
+        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      />
+    </div>
+    @if (filterAdvisorId() || filterFrom() || filterTo()) {
+      <button
+        type="button"
+        class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+        (click)="clearFilters()"
+      >
+        Limpiar filtros
+      </button>
+    }
+  </div>
+
   @if (errorMessage()) {
     <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
   }
@@ -80,11 +123,32 @@
 @if (closingOpportunity(); as closing) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="cancelClose()">
     <div
-      class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-800 dark:bg-gray-900"
+      class="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
       (click)="$event.stopPropagation()"
     >
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Marcar como "{{ closingStage()?.name }}"</h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <div class="flex items-center justify-between gap-3 bg-brand-500 px-6 py-4">
+        <div class="flex items-center gap-3">
+          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-white">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <h2 class="text-base font-semibold text-white">Marcar como "{{ closingStage()?.name }}"</h2>
+        </div>
+        <button
+          type="button"
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+          (click)="cancelClose()"
+          aria-label="Cerrar"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ closing.customer.name }}
       </p>
 
@@ -117,6 +181,7 @@
         >
           {{ isClosing() ? 'Guardando...' : 'Confirmar' }}
         </button>
+      </div>
       </div>
     </div>
   </div>

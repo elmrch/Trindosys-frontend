@@ -1,12 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Customer } from '../../models/customer.model';
 
 export type CustomerSortColumn = 'name' | 'company' | 'status' | 'createdAt';
 
 @Component({
   selector: 'app-customer-list',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './customer-list.html',
 })
 export class CustomerList {

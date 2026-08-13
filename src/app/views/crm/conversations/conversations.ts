@@ -1,24 +1,31 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../../core/auth/auth.service';
 import { AgentInboxSocketService } from '../../../core/services/agent-inbox-socket.service';
 import { Advisor } from '../../../shared/models/advisor.model';
 import { AdvisorService } from '../../../shared/services/advisor.service';
 import { ChatPanel } from './components/chat-panel/chat-panel';
+import { CustomerProfilePanel } from './components/customer-profile-panel/customer-profile-panel';
 import { UnifiedInbox } from './components/unified-inbox/unified-inbox';
-import { AgentInboxEvent, ConversationSummary, Message } from './models/conversation.model';
+import { AgentInboxEvent, ConversationStatus, ConversationSummary, Message } from './models/conversation.model';
 import { ConversationService } from './services/conversation.service';
+
+const RELEVANT_EVENT_TYPES = ['new_message', 'conversation_assigned', 'conversation_read', 'conversation_status'];
 
 @Component({
   selector: 'app-conversations',
-  imports: [UnifiedInbox, ChatPanel],
+  imports: [UnifiedInbox, ChatPanel, CustomerProfilePanel],
   templateUrl: './conversations.html',
 })
 export class Conversations implements OnInit {
   private readonly conversationService = inject(ConversationService);
   private readonly advisorService = inject(AdvisorService);
+  private readonly authService = inject(AuthService);
   private readonly socket = inject(AgentInboxSocketService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly conversations = signal<ConversationSummary[]>([]);
   protected readonly selectedConversation = signal<ConversationSummary | null>(null);
@@ -32,6 +39,21 @@ export class Conversations implements OnInit {
   // TODO: gatear a solo admin en cuanto se confirme el valor exacto del rol
   // (mismo caso pendiente que el filtro de SuperAdmin en Canales).
   protected readonly canAssign = signal(true);
+
+  protected readonly statusFilter = signal<ConversationStatus | ''>('');
+  protected readonly onlyMine = signal(false);
+  protected readonly isProfilePanelOpen = signal(false);
+
+  // El token/sesión no trae el id del usuario logueado, así que se resuelve
+  // cruzando su email contra la lista de asesores (mismo id que devuelve
+  // /api/security/users, que ya se carga acá para los selects de asignación).
+  protected readonly currentAdvisorId = computed(() => {
+    const email = this.authService.currentUser()?.email;
+    if (!email) {
+      return null;
+    }
+    return this.advisors().find((advisor) => advisor.email === email)?.id ?? null;
+  });
 
   private currentPage = 0;
 
@@ -49,10 +71,44 @@ export class Conversations implements OnInit {
 
   protected loadConversations(): void {
     this.errorMessage.set(null);
-    this.conversationService.list().subscribe({
-      next: (list) => this.conversations.set(this.sortByActivity(list)),
+    const status = this.statusFilter() || undefined;
+    const advisorId = this.onlyMine() ? (this.currentAdvisorId() ?? undefined) : undefined;
+
+    this.conversationService.list(status, undefined, advisorId).subscribe({
+      next: (list) => {
+        this.conversations.set(this.sortByActivity(list));
+        this.selectFromQueryParam(list);
+      },
       error: () => this.errorMessage.set('No se pudieron cargar las conversaciones.'),
     });
+  }
+
+  protected setStatusFilter(status: ConversationStatus | ''): void {
+    this.statusFilter.set(status);
+    this.loadConversations();
+  }
+
+  protected toggleOnlyMine(): void {
+    this.onlyMine.update((value) => !value);
+    this.loadConversations();
+  }
+
+  protected toggleProfilePanel(): void {
+    this.isProfilePanelOpen.update((value) => !value);
+  }
+
+  // Permite llegar directo a una conversación puntual (ej. desde el ícono de
+  // WhatsApp en Oportunidades) vía /crm/conversations?conversationId=123.
+  private selectFromQueryParam(list: ConversationSummary[]): void {
+    const rawId = this.route.snapshot.queryParamMap.get('conversationId');
+    if (!rawId) {
+      return;
+    }
+    const conversationId = Number(rawId);
+    const conversation = list.find((c) => c.id === conversationId);
+    if (conversation) {
+      this.selectConversation(conversation);
+    }
   }
 
   protected loadAdvisors(): void {
@@ -69,6 +125,22 @@ export class Conversations implements OnInit {
     this.messages.set([]);
     this.currentPage = 0;
     this.loadMessages(conversation.id, 0);
+
+    if (conversation.unreadCount > 0) {
+      this.conversationService.markRead(conversation.id).subscribe({
+        next: (updated) => this.applyConversationUpdate(updated),
+        error: () => {
+          // No es crítico: el badge se corrige solo en el próximo refresco de la lista.
+        },
+      });
+    }
+  }
+
+  protected changeStatus(payload: { conversation: ConversationSummary; status: ConversationStatus }): void {
+    this.conversationService.updateStatus(payload.conversation.id, payload.status).subscribe({
+      next: (updated) => this.applyConversationUpdate(updated),
+      error: () => this.errorMessage.set('No se pudo actualizar el estado de la conversación.'),
+    });
   }
 
   protected loadOlderMessages(): void {
@@ -144,7 +216,7 @@ export class Conversations implements OnInit {
   }
 
   private onInboxEvent(event: AgentInboxEvent): void {
-    if (event.type !== 'new_message' && event.type !== 'conversation_assigned') {
+    if (!RELEVANT_EVENT_TYPES.includes(event.type)) {
       return;
     }
 

@@ -1,0 +1,294 @@
+<div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="flex flex-wrap items-center gap-2 border-b border-gray-200 p-4 dark:border-gray-800">
+    @for (filter of typeFilters; track filter.value) {
+      <button
+        type="button"
+        class="rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+        [class]="
+          activeFilter() === filter.value
+            ? 'bg-brand-500 text-white'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'
+        "
+        (click)="setFilter(filter.value)"
+      >
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="m-4 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+  }
+
+  @if (isLoading()) {
+    <p class="p-6 text-sm text-gray-500 dark:text-gray-400">Cargando actividades...</p>
+  } @else if (activities().length === 0) {
+    <p class="p-6 text-sm text-gray-500 dark:text-gray-400">Todavía no hay actividades registradas.</p>
+  } @else {
+    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+      @for (activity of activities(); track activity.id) {
+        <li class="p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span
+                class="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
+              >
+                {{ typeLabel(activity.type) }}
+              </span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                {{ activity.activityDate | date: 'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1">
+              @if (activity.type === 'TASK' && activity.taskStatus === 'PENDING') {
+                <button
+                  type="button"
+                  class="rounded-lg border border-success-500/30 p-1.5 text-success-600 hover:bg-success-50 dark:text-success-500 dark:hover:bg-success-500/10"
+                  title="Marcar como completada"
+                  (click)="complete(activity)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              }
+              <button
+                type="button"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
+                title="Editar"
+                (click)="isEditing(activity) ? cancelEdit() : startEdit(activity)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 7h-1a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <path
+                    d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97l-8.415 8.385v3h3l8.385-8.415Z"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path d="M16 5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                title="Eliminar"
+                (click)="remove(activity)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M10 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M14 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <path
+                    d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
+                title="Historial de auditoría"
+                (click)="toggleAudit(activity)"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          @if (!isEditing(activity)) {
+            <div class="mt-2 text-sm text-gray-700 dark:text-gray-200">
+              @switch (activity.type) {
+                @case ('CALL') {
+                  <p><span class="font-medium">Resultado:</span> {{ callResultLabel(activity.callResult) }}</p>
+                  @if (activity.content) {
+                    <p class="mt-1 whitespace-pre-line text-gray-600 dark:text-gray-300">{{ activity.content }}</p>
+                  }
+                }
+                @case ('TASK') {
+                  <p class="whitespace-pre-line">{{ activity.content }}</p>
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Vence: {{ activity.dueDate | date: 'dd/MM/yyyy HH:mm' }} ·
+                    <span
+                      [class]="
+                        activity.taskStatus === 'COMPLETED'
+                          ? 'font-medium text-success-600 dark:text-success-500'
+                          : 'font-medium text-warning-500'
+                      "
+                    >
+                      {{ taskStatusLabel(activity.taskStatus) }}
+                    </span>
+                    @if (activity.assignedAdvisorName) {
+                      · Asignada a {{ activity.assignedAdvisorName }}
+                    }
+                  </p>
+                }
+                @case ('NOTE') {
+                  <p class="whitespace-pre-line">{{ activity.content }}</p>
+                }
+                @case ('FOLLOW_UP') {
+                  <p class="whitespace-pre-line">{{ activity.reason }}</p>
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Fecha objetivo: {{ activity.targetDate | date: 'dd/MM/yyyy HH:mm' }}
+                  </p>
+                }
+              }
+              <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">Por {{ activity.authorName }}</p>
+            </div>
+          } @else {
+            <div class="mt-3 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-white/5">
+              @switch (activity.type) {
+                @case ('NOTE') {
+                  <textarea
+                    rows="3"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    [value]="editDraft().content"
+                    (input)="updateDraft('content', $any($event.target).value)"
+                  ></textarea>
+                }
+                @case ('CALL') {
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Fecha y hora</label>
+                      <input
+                        type="datetime-local"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        [value]="editDraft().occurredAt"
+                        (input)="updateDraft('occurredAt', $any($event.target).value)"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Resultado</label>
+                      <select
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        [value]="editDraft().callResult"
+                        (change)="updateDraft('callResult', $any($event.target).value)"
+                      >
+                        <option value="ANSWERED">Contestó</option>
+                        <option value="NOT_ANSWERED">No contestó</option>
+                        <option value="RESCHEDULED">Reagendó</option>
+                      </select>
+                    </div>
+                  </div>
+                  <textarea
+                    rows="2"
+                    placeholder="Notas"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    [value]="editDraft().content"
+                    (input)="updateDraft('content', $any($event.target).value)"
+                  ></textarea>
+                }
+                @case ('TASK') {
+                  <textarea
+                    rows="2"
+                    placeholder="Descripción"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    [value]="editDraft().content"
+                    (input)="updateDraft('content', $any($event.target).value)"
+                  ></textarea>
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Vencimiento</label>
+                      <input
+                        type="datetime-local"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        [value]="editDraft().dueDate"
+                        (input)="updateDraft('dueDate', $any($event.target).value)"
+                      />
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Estado</label>
+                      <select
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        [value]="editDraft().taskStatus"
+                        (change)="updateDraft('taskStatus', $any($event.target).value)"
+                      >
+                        <option value="PENDING">Pendiente</option>
+                        <option value="COMPLETED">Completada</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">ID asesor</label>
+                      <input
+                        type="number"
+                        class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                        [value]="editDraft().assignedAdvisorId"
+                        (input)="updateDraft('assignedAdvisorId', $any($event.target).value)"
+                      />
+                    </div>
+                  </div>
+                }
+                @case ('FOLLOW_UP') {
+                  <div>
+                    <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-300">Fecha objetivo</label>
+                    <input
+                      type="datetime-local"
+                      class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                      [value]="editDraft().targetDate"
+                      (input)="updateDraft('targetDate', $any($event.target).value)"
+                    />
+                  </div>
+                  <textarea
+                    rows="2"
+                    placeholder="Motivo"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    [value]="editDraft().reason"
+                    (input)="updateDraft('reason', $any($event.target).value)"
+                  ></textarea>
+                }
+              }
+              <div class="flex justify-end gap-2">
+                <button
+                  type="button"
+                  class="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                  (click)="cancelEdit()"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  [disabled]="isSaving()"
+                  class="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+                  (click)="saveEdit(activity)"
+                >
+                  {{ isSaving() ? 'Guardando...' : 'Guardar' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (expandedAuditId() === activity.id) {
+            <div class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-white/5">
+              @if (isLoadingAudit()) {
+                <p class="text-gray-500 dark:text-gray-400">Cargando auditoría...</p>
+              } @else if (auditLogs().length === 0) {
+                <p class="text-gray-500 dark:text-gray-400">Sin cambios registrados.</p>
+              } @else {
+                <ul class="space-y-1.5">
+                  @for (log of auditLogs(); track log.id) {
+                    <li class="text-gray-600 dark:text-gray-300">
+                      <span class="font-medium">{{ auditActionLabel(log.action) }}</span>
+                      por {{ log.performedByName }} · {{ log.performedAt | date: 'dd/MM/yyyy HH:mm' }}
+                      @if (log.detail) {
+                        <span class="block text-gray-400 dark:text-gray-500">{{ log.detail }}</span>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

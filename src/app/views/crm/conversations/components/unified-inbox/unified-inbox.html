@@ -1,5 +1,5 @@
 <div class="flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-  <div class="border-b border-gray-100 p-4 dark:border-gray-800">
+  <div class="space-y-3 border-b border-gray-100 p-4 dark:border-gray-800">
     <div class="relative">
       <svg
         class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -18,17 +18,47 @@
         class="h-10 w-full rounded-lg border border-gray-200 bg-transparent pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-800 dark:text-white"
       />
     </div>
+
+    <div class="flex flex-wrap items-center gap-1.5">
+      @for (filter of statusFilters; track filter.value) {
+        <button
+          type="button"
+          class="rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
+          [class]="
+            statusFilter() === filter.value
+              ? 'bg-brand-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'
+          "
+          (click)="statusFilterChange.emit(filter.value)"
+        >
+          {{ filter.label }}
+        </button>
+      }
+      <button
+        type="button"
+        class="ml-auto rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
+        [class]="
+          onlyMine()
+            ? 'bg-brand-500 text-white'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'
+        "
+        (click)="onlyMineToggle.emit()"
+      >
+        Mis conversaciones
+      </button>
+    </div>
   </div>
 
   <div class="min-h-0 flex-1 overflow-y-auto">
     @for (conversation of filteredConversations(); track conversation.id) {
       <button
         type="button"
-        class="flex w-full items-start gap-3 border-b border-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:border-gray-800/60 dark:hover:bg-white/5"
+        class="flex w-full items-start gap-3 border-b border-gray-50 border-l-2 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:border-gray-800/60 dark:hover:bg-white/5"
         [class]="
-          conversation.id === selectedId()
-            ? 'bg-brand-50 dark:bg-brand-500/10'
-            : ''
+          (conversation.id === selectedId() ? 'bg-brand-50 dark:bg-brand-500/10 ' : '') +
+          (conversation.advisorId !== null && conversation.advisorId === currentAdvisorId()
+            ? 'border-l-brand-400'
+            : 'border-l-transparent')
         "
         (click)="select.emit(conversation)"
       >
@@ -43,17 +73,37 @@
 
         <span class="min-w-0 flex-1">
           <span class="flex items-center justify-between gap-2">
-            <span class="truncate text-sm font-medium text-gray-800 dark:text-white">{{ conversation.customer.name }}</span>
+            <span
+              class="truncate text-sm text-gray-800 dark:text-white"
+              [class]="conversation.unreadCount > 0 ? 'font-semibold' : 'font-medium'"
+            >
+              {{ conversation.customer.name }}
+            </span>
             <span class="shrink-0 text-xs text-gray-400">{{ formatRelativeTime(conversation.lastActivityAt) }}</span>
           </span>
-          <span class="mt-0.5 block truncate text-xs text-gray-500 dark:text-gray-400">
-            {{ conversation.lastMessagePreview || 'Sin mensajes todavía' }}
+          <span class="mt-0.5 flex items-center gap-1.5">
+            <span
+              class="block flex-1 truncate text-xs"
+              [class]="conversation.unreadCount > 0 ? 'font-medium text-gray-700 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'"
+            >
+              {{ conversation.lastMessagePreview || 'Sin mensajes todavía' }}
+            </span>
+            @if (conversation.unreadCount > 0) {
+              <span
+                class="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[11px] font-semibold text-white"
+              >
+                {{ conversation.unreadCount > 9 ? '9+' : conversation.unreadCount }}
+              </span>
+            }
           </span>
-          <span class="mt-1.5 flex items-center gap-1.5">
+          <span class="mt-1.5 flex flex-wrap items-center gap-1.5">
             <span
               class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400"
             >
               {{ conversation.channelCode }}
+            </span>
+            <span class="rounded-full px-2 py-0.5 text-[11px] font-medium" [class]="statusClass(conversation.status)">
+              {{ statusLabel(conversation.status) }}
             </span>
             <app-active-agent-indicator
               [advisorId]="conversation.advisorId"

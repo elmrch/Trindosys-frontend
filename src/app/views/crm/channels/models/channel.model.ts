@@ -15,6 +15,9 @@ export interface ChannelConnection {
   webhookUrl: string | null;
   active: boolean;
   createdAt: string;
+  createdBy: number | null;
+  updatedAt: string | null;
+  updatedBy: number | null;
 }
 
 export interface ChannelConnectionRequest {

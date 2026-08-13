@@ -8,15 +8,23 @@
     <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
   }
 
-  <div class="grid h-[75vh] min-h-0 grid-cols-1 gap-4 lg:grid-cols-[360px_1fr]">
+  <div
+    class="grid h-[75vh] min-h-0 grid-cols-1 gap-4"
+    [class]="isProfilePanelOpen() ? 'lg:grid-cols-[320px_1fr_280px]' : 'lg:grid-cols-[320px_1fr]'"
+  >
     <app-unified-inbox
       class="min-h-0"
       [conversations]="conversations()"
       [selectedId]="selectedConversation()?.id ?? null"
       [advisors]="advisors()"
       [canAssign]="canAssign()"
+      [currentAdvisorId]="currentAdvisorId()"
+      [statusFilter]="statusFilter()"
+      [onlyMine]="onlyMine()"
       (select)="selectConversation($event)"
       (assign)="assignAdvisor($event)"
+      (statusFilterChange)="setStatusFilter($event)"
+      (onlyMineToggle)="toggleOnlyMine()"
     />
     <app-chat-panel
       class="min-h-0"
@@ -28,6 +36,11 @@
       (send)="sendMessage($event)"
       (sendAttachments)="sendAttachments($event)"
       (loadOlder)="loadOlderMessages()"
+      (statusChange)="changeStatus($event)"
+      (toggleProfile)="toggleProfilePanel()"
     />
+    @if (isProfilePanelOpen()) {
+      <app-customer-profile-panel class="hidden min-h-0 lg:block" [customerId]="selectedConversation()?.customer?.id ?? null" />
+    }
   </div>
 </div>

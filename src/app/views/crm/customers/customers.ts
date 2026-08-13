@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { SweetAlertService } from '../../../core/services/sweet-alert.service';
 import { CustomerForm } from './components/customer-form/customer-form';
 import { CustomerList, CustomerSortColumn } from './components/customer-list/customer-list';
 import { Customer } from './models/customer.model';
@@ -11,6 +12,7 @@ import { CustomerService } from './services/customer.service';
 })
 export class Customers implements OnInit {
   private readonly customerService = inject(CustomerService);
+  private readonly sweetAlert = inject(SweetAlertService);
 
   protected readonly customers = signal<Customer[]>([]);
   protected readonly searchTerm = signal('');
@@ -104,12 +106,19 @@ export class Customers implements OnInit {
   }
 
   protected onDeactivate(customer: Customer): void {
-    if (!confirm(`¿Desactivar al cliente "${customer.name}"?`)) {
-      return;
-    }
-    this.customerService.deactivate(customer.id).subscribe({
-      next: () => this.load(),
-      error: () => this.errorMessage.set('No se pudo desactivar el cliente.'),
-    });
+    this.sweetAlert
+      .confirm(`¿Desactivar al cliente "${customer.name}"?`, 'Esta acción no se puede deshacer.', 'Sí, desactivar')
+      .then((result) => {
+        if (!result.isConfirmed) {
+          return;
+        }
+        this.customerService.deactivate(customer.id).subscribe({
+          next: () => {
+            this.sweetAlert.toast('Cliente desactivado.');
+            this.load();
+          },
+          error: () => this.sweetAlert.error('No se pudo desactivar el cliente.'),
+        });
+      });
   }
 }

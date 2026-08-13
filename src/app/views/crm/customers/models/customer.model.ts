@@ -9,7 +9,11 @@ export interface Customer {
   notes: string | null;
   advisorId: number | null;
   createdAt: string;
+  createdBy: number | null;
+  updatedAt: string | null;
+  updatedBy: number | null;
   lastInteractionAt: string | null;
+  tags: string[];
 }
 
 export interface CustomerRequest {
@@ -20,4 +24,8 @@ export interface CustomerRequest {
   sourceCampaign: string | null;
   notes: string | null;
   advisorId: number | null;
+}
+
+export interface UpdateCustomerTagsRequest {
+  tags: string[];
 }

@@ -1,173 +1,127 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MenuItem } from '../../../shared/models/menu-item.model';
+import { MenuService } from '../../services/menu.service';
 import { SidebarService } from '../../services/sidebar.service';
 import { AgentInboxSocketService } from '../../services/agent-inbox-socket.service';
+
+export interface MenuNode extends MenuItem {
+  children: MenuNode[];
+}
+
+const CONVERSATIONS_STATE = '/crm/conversations';
+
+const SVG_OPEN = '<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">';
+const SVG_CLOSE = '</svg>';
+
+/**
+ * El catálogo de módulos del backend hoy no trae `svgIcon` como markup SVG utilizable
+ * (viene null o en un formato distinto), así que se usan estos íconos locales como
+ * respaldo por ruta/nombre — el árbol de navegación sigue siendo 100% dinámico, solo
+ * el dibujo del ícono es local. Si el backend empieza a mandar `svgIcon` real, ese
+ * tiene prioridad (ver iconMarkup()).
+ */
+const ICON_BY_STATE: Record<string, string> = {
+  '/dashboard':
+    '<path d="M3 12.5 12 4l9 8.5M5 10.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  '/crm/customers':
+    '<path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M11 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19.5 19v-1a3 3 0 0 0-2.5-2.96M15 4.13a3 3 0 0 1 0 5.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  '/crm/opportunities': '<path d="M4 19V9m6 10V5m6 14v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  '/crm/channels': '<path d="M4 5h16M4 12h16M4 19h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  '/crm/conversations':
+    '<path d="M4 4h16v11H8l-4 4V4Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  '/security/users':
+    '<circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 20c1.3-4 4.2-6 7.5-6s6.2 2 7.5 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  '/security/role-menus':
+    '<path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="19" cy="17" r="2" stroke="currentColor" stroke-width="1.4"/>',
+  '/security/menu-items':
+    '<rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/>',
+};
+
+const ICON_BY_NAME: Record<string, string> = {
+  crm: '<path d="M4 21V8a1 1 0 0 1 1-1h4V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3h4a1 1 0 0 1 1 1v13M4 21h16M9 21v-4h6v4M9 12h.01M9 15h.01M15 12h.01M15 15h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  seguridad:
+    '<path d="M12 3.5 5 6v5.5c0 4.6 3 7.9 7 9 4-1.1 7-4.4 7-9V6l-7-2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+
+const ICON_FALLBACK = '<circle cx="12" cy="12" r="3" fill="currentColor"/>';
 
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive],
-  template: `
-    <aside
-      class="fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-gray-200 bg-white px-5 transition-all duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 lg:static"
-      [class.w-[290px]]="sidebar.isSidebarVisible"
-      [class.w-[90px]]="!sidebar.isSidebarVisible"
-      [class.translate-x-0]="sidebar.isSidebarVisible || sidebar.isMobileOpen()"
-      [class.-translate-x-full]="!sidebar.isMobileOpen() && !sidebar.isExpanded()"
-      (mouseenter)="onEnter()"
-      (mouseleave)="onLeave()"
-    >
-      <div class="flex items-center py-8" [class.justify-center]="!sidebar.isSidebarVisible">
-        <a routerLink="/dashboard" class="flex items-center gap-2">
-          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 13h4v7H4v-7Zm6-9h4v16h-4V4Zm6 5h4v11h-4V9Z" fill="currentColor" />
-            </svg>
-          </span>
-          @if (sidebar.isSidebarVisible) {
-            <span class="text-lg font-bold text-gray-800 dark:text-white">Trindosys</span>
-          }
-        </a>
-      </div>
-
-      <nav class="custom-scrollbar flex-1 overflow-y-auto pb-6">
-        @if (sidebar.isSidebarVisible) {
-          <span class="mb-4 block text-xs font-medium uppercase tracking-wide text-gray-400">Menu</span>
-        }
-        <ul class="flex flex-col gap-1">
-          <li>
-            <a
-              routerLink="/dashboard"
-              routerLinkActive="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-              [class.justify-center]="!sidebar.isSidebarVisible"
-            >
-              <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M3 12.5 12 4l9 8.5M5 10.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9.5"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              @if (sidebar.isSidebarVisible) {
-                <span>Dashboard</span>
-              }
-            </a>
-          </li>
-        </ul>
-
-        @if (sidebar.isSidebarVisible) {
-          <span class="mb-4 mt-6 block text-xs font-medium uppercase tracking-wide text-gray-400">CRM</span>
-        }
-        <ul class="flex flex-col gap-1">
-          <li>
-            <a
-              routerLink="/crm/customers"
-              routerLinkActive="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-              [class.justify-center]="!sidebar.isSidebarVisible"
-            >
-              <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M11 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19.5 19v-1a3 3 0 0 0-2.5-2.96M15 4.13a3 3 0 0 1 0 5.75"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              @if (sidebar.isSidebarVisible) {
-                <span>Contactos</span>
-              }
-            </a>
-          </li>
-          <li>
-            <a
-              routerLink="/crm/opportunities"
-              routerLinkActive="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-              [class.justify-center]="!sidebar.isSidebarVisible"
-            >
-              <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4 19V9m6 10V5m6 14v-6"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-              @if (sidebar.isSidebarVisible) {
-                <span>Oportunidades</span>
-              }
-            </a>
-          </li>
-          <li>
-            <a
-              routerLink="/crm/channels"
-              routerLinkActive="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-              [class.justify-center]="!sidebar.isSidebarVisible"
-            >
-              <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4 5h16M4 12h16M4 19h10"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                />
-              </svg>
-              @if (sidebar.isSidebarVisible) {
-                <span>Canales</span>
-              }
-            </a>
-          </li>
-          <li>
-            <a
-              routerLink="/crm/conversations"
-              routerLinkActive="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400"
-              class="relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white"
-              [class.justify-center]="!sidebar.isSidebarVisible"
-            >
-              <span class="relative shrink-0">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M4 4h16v11H8l-4 4V4Z"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-                @if (inboxSocket.unreadCount() > 0 && !sidebar.isSidebarVisible) {
-                  <span class="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-error-500"></span>
-                }
-              </span>
-              @if (sidebar.isSidebarVisible) {
-                <span>Conversaciones</span>
-                @if (inboxSocket.unreadCount() > 0) {
-                  <span
-                    class="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-error-500 px-1.5 text-[11px] font-semibold text-white"
-                  >
-                    {{ inboxSocket.unreadCount() > 9 ? '9+' : inboxSocket.unreadCount() }}
-                  </span>
-                }
-              }
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </aside>
-
-    @if (sidebar.isMobileOpen()) {
-      <div class="fixed inset-0 z-40 bg-gray-900/50 lg:hidden" (click)="sidebar.toggleMobileSidebar()"></div>
-    }
-  `,
+  templateUrl: './sidebar.html',
 })
-export class Sidebar {
+export class Sidebar implements OnInit {
   protected readonly sidebar = inject(SidebarService);
   protected readonly inboxSocket = inject(AgentInboxSocketService);
+  private readonly menuService = inject(MenuService);
+  private readonly sanitizer = inject(DomSanitizer);
+
+  protected readonly conversationsState = CONVERSATIONS_STATE;
+
+  private readonly menuItems = signal<MenuItem[]>([]);
+  protected readonly isLoading = signal(true);
+  protected readonly openIds = signal<Set<number>>(new Set());
+
+  protected readonly tree = computed<MenuNode[]>(() => {
+    const items = this.menuItems();
+    const nodes = new Map<number, MenuNode>(items.map((item) => [item.id, { ...item, children: [] }]));
+    const roots: MenuNode[] = [];
+
+    for (const node of nodes.values()) {
+      if (node.parentId !== null && nodes.has(node.parentId)) {
+        nodes.get(node.parentId)!.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    const sortByOrder = (a: MenuItem, b: MenuItem) => a.orderIndex - b.orderIndex;
+    for (const node of nodes.values()) {
+      node.children.sort(sortByOrder);
+    }
+    roots.sort(sortByOrder);
+    return roots;
+  });
+
+  ngOnInit(): void {
+    this.menuService.myMenu().subscribe({
+      next: (items) => {
+        this.menuItems.set(items);
+        this.openIds.set(new Set(items.filter((item) => item.type === 'DROP_DOWN').map((item) => item.id)));
+        this.isLoading.set(false);
+      },
+      error: () => this.isLoading.set(false),
+    });
+  }
+
+  protected isOpen(node: MenuNode): boolean {
+    return this.openIds().has(node.id);
+  }
+
+  protected toggle(node: MenuNode): void {
+    const next = new Set(this.openIds());
+    if (next.has(node.id)) {
+      next.delete(node.id);
+    } else {
+      next.add(node.id);
+    }
+    this.openIds.set(next);
+  }
+
+  protected iconMarkup(node: MenuItem): SafeHtml {
+    if (node.svgIcon && node.svgIcon.trim().startsWith('<')) {
+      return this.sanitizer.bypassSecurityTrustHtml(node.svgIcon);
+    }
+
+    const inner =
+      (node.state ? ICON_BY_STATE[node.state] : undefined) ??
+      ICON_BY_NAME[node.name.trim().toLowerCase()] ??
+      ICON_FALLBACK;
+
+    return this.sanitizer.bypassSecurityTrustHtml(`${SVG_OPEN}${inner}${SVG_CLOSE}`);
+  }
 
   onEnter(): void {
     if (!this.sidebar.isExpanded()) {

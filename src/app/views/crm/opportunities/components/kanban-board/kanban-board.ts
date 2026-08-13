@@ -23,8 +23,59 @@ export class KanbanBoard {
   readonly closeCard = output<{ opportunity: Opportunity; stage: PipelineStage }>();
 
   protected readonly dragOverStageId = signal<number | null>(null);
+  protected readonly isPanning = signal(false);
 
   private draggingOpportunity: Opportunity | null = null;
+
+  private panStartX = 0;
+  private panStartScrollLeft = 0;
+  private panContainer: HTMLElement | null = null;
+  private panMoveListener: ((event: MouseEvent) => void) | null = null;
+  private panUpListener: (() => void) | null = null;
+
+  // Pan-to-scroll: clic sostenido en el fondo del tablero (no en una tarjeta
+  // ni en un botón) y arrastrar desplaza el scroll horizontal, como en Trello.
+  protected onPanStart(event: MouseEvent, container: HTMLElement): void {
+    if (event.button !== 0) {
+      return;
+    }
+
+    const target = event.target as HTMLElement;
+    if (target.closest('[draggable="true"], button, a, input, textarea, select')) {
+      return;
+    }
+
+    event.preventDefault();
+    this.isPanning.set(true);
+    this.panContainer = container;
+    this.panStartX = event.clientX;
+    this.panStartScrollLeft = container.scrollLeft;
+
+    this.panMoveListener = (moveEvent: MouseEvent) => {
+      if (!this.panContainer) {
+        return;
+      }
+      this.panContainer.scrollLeft = this.panStartScrollLeft - (moveEvent.clientX - this.panStartX);
+    };
+
+    this.panUpListener = () => this.stopPanning();
+
+    document.addEventListener('mousemove', this.panMoveListener);
+    document.addEventListener('mouseup', this.panUpListener);
+  }
+
+  private stopPanning(): void {
+    this.isPanning.set(false);
+    this.panContainer = null;
+    if (this.panMoveListener) {
+      document.removeEventListener('mousemove', this.panMoveListener);
+      this.panMoveListener = null;
+    }
+    if (this.panUpListener) {
+      document.removeEventListener('mouseup', this.panUpListener);
+      this.panUpListener = null;
+    }
+  }
 
   protected columnOpportunities(stage: PipelineStage): Opportunity[] {
     return this.opportunities().filter((opportunity) => opportunity.stage.id === stage.id);
@@ -32,6 +83,14 @@ export class KanbanBoard {
 
   protected columnTotal(stage: PipelineStage): number {
     return this.columnOpportunities(stage).reduce((sum, opportunity) => sum + (opportunity.estimatedValue ?? 0), 0);
+  }
+
+  protected columnWeightedTotal(stage: PipelineStage): number {
+    const probability = stage.probability ?? 0;
+    return this.columnOpportunities(stage).reduce(
+      (sum, opportunity) => sum + ((opportunity.estimatedValue ?? 0) * probability) / 100,
+      0,
+    );
   }
 
   protected stageBadgeClass(stage: PipelineStage): string {

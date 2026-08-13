@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SweetAlertService } from '../../../../../core/services/sweet-alert.service';
 import { PipelineStage, PipelineStageRequest, StageType } from '../../models/pipeline-stage.model';
 import { PipelineStageService } from '../../services/pipeline-stage.service';
 
@@ -12,6 +13,7 @@ import { PipelineStageService } from '../../services/pipeline-stage.service';
 export class PipelineStageManager implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly pipelineStageService = inject(PipelineStageService);
+  private readonly sweetAlert = inject(SweetAlertService);
 
   readonly close = output<void>();
   readonly changed = output<void>();
@@ -29,6 +31,8 @@ export class PipelineStageManager implements OnInit {
     position: [''],
     type: ['OPEN' as StageType, Validators.required],
     initial: [false],
+    color: ['#9CA3AF'],
+    probability: [0, [Validators.min(0), Validators.max(100)]],
   });
 
   ngOnInit(): void {
@@ -52,7 +56,7 @@ export class PipelineStageManager implements OnInit {
 
   protected openCreateForm(): void {
     this.editingStage.set(null);
-    this.form.reset({ name: '', position: '', type: 'OPEN', initial: false });
+    this.form.reset({ name: '', position: '', type: 'OPEN', initial: false, color: '#9CA3AF', probability: 0 });
     this.isFormOpen.set(true);
   }
 
@@ -63,6 +67,8 @@ export class PipelineStageManager implements OnInit {
       position: String(stage.position),
       type: stage.type,
       initial: stage.initial,
+      color: stage.color ?? '#9CA3AF',
+      probability: stage.probability ?? 0,
     });
     this.isFormOpen.set(true);
   }
@@ -84,6 +90,8 @@ export class PipelineStageManager implements OnInit {
       position: raw.position ? Number(raw.position) : undefined,
       type: raw.type,
       initial: raw.initial,
+      color: raw.color || null,
+      probability: raw.probability,
     };
 
     this.errorMessage.set(null);
@@ -109,23 +117,28 @@ export class PipelineStageManager implements OnInit {
   }
 
   protected deleteStage(stage: PipelineStage): void {
-    if (!confirm(`¿Eliminar la etapa "${stage.name}"?`)) {
-      return;
-    }
+    this.sweetAlert
+      .confirm(`¿Eliminar la etapa "${stage.name}"?`, 'Esta acción no se puede deshacer.', 'Sí, eliminar')
+      .then((result) => {
+        if (!result.isConfirmed) {
+          return;
+        }
 
-    this.errorMessage.set(null);
-    this.pipelineStageService.delete(stage.id).subscribe({
-      next: () => {
-        this.load();
-        this.changed.emit();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.errorMessage.set(
-          error.status === 400
-            ? 'No se puede eliminar: tiene oportunidades asociadas, o es la etapa inicial y quedan otras etapas.'
-            : 'No se pudo eliminar la etapa.',
-        );
-      },
-    });
+        this.errorMessage.set(null);
+        this.pipelineStageService.delete(stage.id).subscribe({
+          next: () => {
+            this.sweetAlert.toast('Etapa eliminada.');
+            this.load();
+            this.changed.emit();
+          },
+          error: (error: HttpErrorResponse) => {
+            this.sweetAlert.error(
+              error.status === 400
+                ? 'No se puede eliminar: tiene oportunidades asociadas, o es la etapa inicial y quedan otras etapas.'
+                : 'No se pudo eliminar la etapa.',
+            );
+          },
+        });
+      });
   }
 }

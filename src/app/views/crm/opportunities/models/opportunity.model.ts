@@ -10,8 +10,12 @@ export interface Opportunity {
   description: string | null;
   lossReason: string | null;
   createdAt: string;
+  createdBy: number | null;
   updatedAt: string;
+  updatedBy: number | null;
   closedAt: string | null;
+  stageChangedAt: string;
+  activityCount: number;
 }
 
 export interface OpportunityRequest {

@@ -5,9 +5,11 @@ import { SidebarService } from '../../services/sidebar.service';
 import { ThemeService } from '../../services/theme.service';
 import { AuthService } from '../../auth/auth.service';
 import { getInitials } from '../../../shared/utils/initials.util';
+import { NotificationBell } from '../../../views/crm/activities/components/notification-bell/notification-bell';
 
 @Component({
   selector: 'app-header',
+  imports: [NotificationBell],
   template: `
     <header class="sticky top-0 z-30 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div class="flex w-full items-center justify-between px-4 py-3 lg:px-6">
@@ -74,21 +76,7 @@ import { getInitials } from '../../../shared/utils/initials.util';
             }
           </button>
 
-          <button
-            type="button"
-            class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5"
-            aria-label="Notificaciones"
-          >
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9Z"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linejoin="round"
-              />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            </svg>
-          </button>
+          <app-notification-bell />
 
           <div class="relative">
             <button
