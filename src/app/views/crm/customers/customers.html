@@ -31,41 +31,436 @@
     </button>
   </div>
 
-  <!-- Búsqueda rápida -->
-  <div class="border-b border-gray-200 p-3 dark:border-gray-800">
-    <div class="relative w-full md:w-80">
-      <svg
-        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6" />
-        <path d="m20 20-3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-      </svg>
-      <input
-        type="text"
-        placeholder="Buscar por nombre, email o empresa..."
-        [value]="searchTerm()"
-        (input)="searchTerm.set($any($event.target).value)"
-        class="h-9 w-full rounded-lg border border-gray-300 bg-gray-50 pl-9 pr-8 text-sm text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-      />
-      @if (searchTerm()) {
+  <!-- Backdrop para cerrar desplegables de filtros al hacer clic fuera -->
+  @if (openDropdown()) {
+    <div class="fixed inset-0 z-20" (click)="closeDropdown()"></div>
+  }
+
+  <!-- Barra de Filtros estilo CRM / HubSpot con el diseño y paleta del ERP -->
+  <div class="border-b border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-white/[0.02]">
+    <!-- Fila 1: Filtros de Píldoras -->
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Filtro Asesor / Contact owner -->
+      <div class="relative">
         <button
           type="button"
-          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          (click)="searchTerm.set('')"
-          aria-label="Limpiar búsqueda"
+          (click)="toggleDropdown('advisor')"
+          class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors"
+          [class]="
+            filterAdvisorId()
+              ? 'border border-brand-300 bg-brand-50 font-semibold text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400'
+              : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+          "
         >
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <span class="truncate max-w-[140px]">{{ advisorFilterLabel() }}</span>
+          <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
           </svg>
         </button>
+
+        @if (openDropdown() === 'advisor') {
+          <div class="absolute left-0 z-30 mt-1.5 w-56 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <p class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Propietario / Asesor</p>
+            <button
+              type="button"
+              (click)="setAdvisorFilter(''); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="!filterAdvisorId()"
+            >
+              <span>Todos los asesores</span>
+              @if (!filterAdvisorId()) { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setAdvisorFilter('unassigned'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterAdvisorId() === 'unassigned'"
+            >
+              <span>Sin asignar</span>
+              @if (filterAdvisorId() === 'unassigned') { <span class="text-brand-500">✓</span> }
+            </button>
+            <div class="my-1 border-t border-gray-100 dark:border-gray-700"></div>
+            @for (advisor of advisors(); track advisor.id) {
+              <button
+                type="button"
+                (click)="setAdvisorFilter(String(advisor.id)); closeDropdown()"
+                class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+                [class.font-semibold]="filterAdvisorId() === String(advisor.id)"
+              >
+                <span class="truncate">{{ advisor.fullName }}</span>
+                @if (filterAdvisorId() === String(advisor.id)) { <span class="text-brand-500">✓</span> }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Filtro Fecha de creación / Create date -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('createDate')"
+          class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors"
+          [class]="
+            filterCreatePreset()
+              ? 'border border-brand-300 bg-brand-50 font-semibold text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400'
+              : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+          "
+        >
+          <span class="truncate max-w-[140px]">{{ createDateFilterLabel() }}</span>
+          <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        @if (openDropdown() === 'createDate') {
+          <div class="absolute left-0 z-30 mt-1.5 w-60 rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <p class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Fecha de creación</p>
+            <button
+              type="button"
+              (click)="setCreatePreset(''); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="!filterCreatePreset()"
+            >
+              <span>Cualquier fecha</span>
+              @if (!filterCreatePreset()) { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setCreatePreset('today'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterCreatePreset() === 'today'"
+            >
+              <span>Hoy</span>
+              @if (filterCreatePreset() === 'today') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setCreatePreset('last7days'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterCreatePreset() === 'last7days'"
+            >
+              <span>Últimos 7 días</span>
+              @if (filterCreatePreset() === 'last7days') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setCreatePreset('thisMonth'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterCreatePreset() === 'thisMonth'"
+            >
+              <span>Este mes</span>
+              @if (filterCreatePreset() === 'thisMonth') { <span class="text-brand-500">✓</span> }
+            </button>
+            <div class="my-1.5 border-t border-gray-100 dark:border-gray-700"></div>
+            <p class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Rango personalizado</p>
+            <div class="space-y-1.5 px-2 py-1">
+              <div>
+                <label class="block text-[10px] text-gray-400">Desde</label>
+                <input
+                  type="date"
+                  [value]="filterCreatedFrom()"
+                  (input)="filterCreatedFrom.set($any($event.target).value); filterCreatePreset.set('custom')"
+                  class="w-full rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] text-gray-400">Hasta</label>
+                <input
+                  type="date"
+                  [value]="filterCreatedTo()"
+                  (input)="filterCreatedTo.set($any($event.target).value); filterCreatePreset.set('custom')"
+                  class="w-full rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Filtro Última actividad / Last activity date -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('activityDate')"
+          class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors"
+          [class]="
+            filterActivityPreset()
+              ? 'border border-brand-300 bg-brand-50 font-semibold text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400'
+              : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+          "
+        >
+          <span class="truncate max-w-[140px]">{{ activityDateFilterLabel() }}</span>
+          <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        @if (openDropdown() === 'activityDate') {
+          <div class="absolute left-0 z-30 mt-1.5 w-60 rounded-xl border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <p class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Última actividad</p>
+            <button
+              type="button"
+              (click)="setActivityPreset(''); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="!filterActivityPreset()"
+            >
+              <span>Cualquier fecha</span>
+              @if (!filterActivityPreset()) { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setActivityPreset('today'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterActivityPreset() === 'today'"
+            >
+              <span>Hoy</span>
+              @if (filterActivityPreset() === 'today') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setActivityPreset('last7days'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterActivityPreset() === 'last7days'"
+            >
+              <span>Últimos 7 días</span>
+              @if (filterActivityPreset() === 'last7days') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setActivityPreset('thisMonth'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterActivityPreset() === 'thisMonth'"
+            >
+              <span>Este mes</span>
+              @if (filterActivityPreset() === 'thisMonth') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setActivityPreset('never'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterActivityPreset() === 'never'"
+            >
+              <span>Sin interacción registrada</span>
+              @if (filterActivityPreset() === 'never') { <span class="text-brand-500">✓</span> }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Filtro Estado / Lead status -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('status')"
+          class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors"
+          [class]="
+            filterStatus()
+              ? 'border border-brand-300 bg-brand-50 font-semibold text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400'
+              : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+          "
+        >
+          <span class="truncate max-w-[140px]">{{ statusFilterLabel() }}</span>
+          <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        @if (openDropdown() === 'status') {
+          <div class="absolute left-0 z-30 mt-1.5 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <p class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Estado del contacto</p>
+            <button
+              type="button"
+              (click)="setStatusFilter(''); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="!filterStatus()"
+            >
+              <span>Todos</span>
+              @if (!filterStatus()) { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setStatusFilter('LEAD'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterStatus() === 'LEAD'"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-blue-500"></span>
+                <span>Lead</span>
+              </div>
+              @if (filterStatus() === 'LEAD') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setStatusFilter('PROSPECT'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterStatus() === 'PROSPECT'"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                <span>Prospecto</span>
+              </div>
+              @if (filterStatus() === 'PROSPECT') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setStatusFilter('CUSTOMER'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterStatus() === 'CUSTOMER'"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span>Cliente</span>
+              </div>
+              @if (filterStatus() === 'CUSTOMER') { <span class="text-brand-500">✓</span> }
+            </button>
+            <button
+              type="button"
+              (click)="setStatusFilter('INACTIVE'); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="filterStatus() === 'INACTIVE'"
+            >
+              <div class="flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+                <span>Inactivo</span>
+              </div>
+              @if (filterStatus() === 'INACTIVE') { <span class="text-brand-500">✓</span> }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Filtro Más / Etiquetas -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('tag')"
+          class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors"
+          [class]="
+            filterTag()
+              ? 'border border-brand-300 bg-brand-50 font-semibold text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400'
+              : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+          "
+        >
+          <span>{{ tagFilterLabel() }}</span>
+          <svg class="h-3.5 w-3.5 shrink-0 opacity-70" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          </svg>
+        </button>
+
+        @if (openDropdown() === 'tag') {
+          <div class="absolute left-0 z-30 mt-1.5 w-52 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+            <p class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">Etiquetas</p>
+            <button
+              type="button"
+              (click)="setTagFilter(''); closeDropdown()"
+              class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+              [class.font-semibold]="!filterTag()"
+            >
+              <span>Todas las etiquetas</span>
+              @if (!filterTag()) { <span class="text-brand-500">✓</span> }
+            </button>
+            @for (tag of availableTags(); track tag) {
+              <button
+                type="button"
+                (click)="setTagFilter(tag); closeDropdown()"
+                class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5"
+                [class.font-semibold]="filterTag() === tag"
+              >
+                <span class="truncate">{{ tag }}</span>
+                @if (filterTag() === tag) { <span class="text-brand-500">✓</span> }
+              </button>
+            } @empty {
+              <p class="px-2 py-2 text-xs text-gray-400">No hay etiquetas registradas</p>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="h-4 w-px bg-gray-300 dark:bg-gray-700"></div>
+
+      <!-- Botón Limpiar filtros / Indicador activo -->
+      @if (activeFiltersCount() > 0) {
+        <button
+          type="button"
+          (click)="clearAllFilters()"
+          class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-gray-700 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-950/30"
+          title="Limpiar todos los filtros"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Limpiar filtros</span>
+          <span class="flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+            {{ activeFiltersCount() }}
+          </span>
+        </button>
       }
+
+      <div class="ml-auto flex items-center gap-2">
+        <button
+          type="button"
+          (click)="load()"
+          class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/5"
+          title="Recargar lista"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 21h5v-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-      La búsqueda solo filtra los Contactos de la página actual — no hay búsqueda en el servidor todavía.
-    </p>
+
+    <!-- Fila 2: Barra de Búsqueda y Exportar -->
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="relative flex-1 min-w-[240px] max-w-md">
+        <svg
+          class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6" />
+          <path d="m20 20-3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, email, teléfono, empresa..."
+          [value]="searchTerm()"
+          (input)="searchTerm.set($any($event.target).value)"
+          class="h-9 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-8 text-xs text-gray-700 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        />
+        @if (searchTerm()) {
+          <button
+            type="button"
+            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            (click)="searchTerm.set('')"
+            aria-label="Limpiar búsqueda"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="exportToCsv()"
+          class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+          title="Descargar lista de contactos filtrados en formato CSV"
+        >
+          <svg class="h-3.5 w-3.5 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Exportar</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   @if (errorMessage()) {
@@ -77,6 +472,7 @@
   } @else {
     <app-customer-list
       [customers]="filteredCustomers()"
+      [advisors]="advisors()"
       [sortColumn]="sortColumn()"
       [sortDirection]="sortDirection()"
       (edit)="openEditForm($event)"
@@ -113,5 +509,6 @@
 </div>
 
 @if (isFormOpen()) {
-  <app-customer-form [customer]="editingCustomer()" (saved)="onSaved()" (cancel)="closeForm()" />
+  <app-customer-form [customer]="editingCustomer()" (saved)="onSaved()" (cancel)="closeForm()" [advisors]="advisors()" />
 }
+

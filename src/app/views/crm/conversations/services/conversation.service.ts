@@ -17,7 +17,12 @@ export class ConversationService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/crm/conversations`;
 
-  list(status?: string, channelId?: number, advisorId?: number): Observable<ConversationSummary[]> {
+  list(
+    status?: string,
+    channelId?: number,
+    advisorId?: number,
+    includeArchived = false,
+  ): Observable<ConversationSummary[]> {
     let params = new HttpParams();
     if (status) {
       params = params.set('status', status);
@@ -28,6 +33,9 @@ export class ConversationService {
     if (advisorId) {
       params = params.set('advisorId', advisorId);
     }
+    if (includeArchived) {
+      params = params.set('includeArchived', 'true');
+    }
     return this.http.get<ConversationSummary[]>(this.baseUrl, { params });
   }
 
@@ -36,14 +44,27 @@ export class ConversationService {
     return this.http.get<Page<Message>>(`${this.baseUrl}/${conversationId}/messages`, { params });
   }
 
+  searchMessages(conversationId: number, query: string): Observable<Page<Message>> {
+    const params = new HttpParams().set('q', query).set('size', 20);
+    return this.http.get<Page<Message>>(`${this.baseUrl}/${conversationId}/messages/search`, { params });
+  }
+
   sendMessage(conversationId: number, request: SendMessageRequest): Observable<Message> {
     return this.http.post<Message>(`${this.baseUrl}/${conversationId}/messages`, request);
   }
 
-  sendAttachments(conversationId: number, content: string, files: File[]): Observable<Message> {
+  sendAttachments(
+    conversationId: number,
+    content: string,
+    files: File[],
+    replyToMessageId?: number | null,
+  ): Observable<Message> {
     const formData = new FormData();
     formData.append('content', content);
     files.forEach((file) => formData.append('files', file));
+    if (replyToMessageId) {
+      formData.append('replyToMessageId', String(replyToMessageId));
+    }
     return this.http.post<Message>(`${this.baseUrl}/${conversationId}/messages/attachments`, formData);
   }
 
@@ -65,5 +86,21 @@ export class ConversationService {
   updateStatus(conversationId: number, status: ConversationStatus): Observable<ConversationSummary> {
     const request: UpdateConversationStatusRequest = { status };
     return this.http.patch<ConversationSummary>(`${this.baseUrl}/${conversationId}/status`, request);
+  }
+
+  setArchived(conversationId: number, archived: boolean): Observable<ConversationSummary> {
+    return this.http.patch<ConversationSummary>(`${this.baseUrl}/${conversationId}/archive`, { archived });
+  }
+
+  markUnread(conversationId: number): Observable<ConversationSummary> {
+    return this.http.patch<ConversationSummary>(`${this.baseUrl}/${conversationId}/unread`, {});
+  }
+
+  setBlocked(conversationId: number, blocked: boolean): Observable<ConversationSummary> {
+    return this.http.patch<ConversationSummary>(`${this.baseUrl}/${conversationId}/block`, { blocked });
+  }
+
+  exportConversation(conversationId: number): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${conversationId}/export`, { responseType: 'blob' });
   }
 }

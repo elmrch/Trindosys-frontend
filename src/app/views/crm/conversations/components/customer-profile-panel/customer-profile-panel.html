@@ -50,31 +50,77 @@
     </div>
 
     <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Oportunidades</p>
+      <div class="mb-2 flex items-center justify-between">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Oportunidades</p>
+        <a
+          routerLink="/crm/opportunities"
+          title="Ir al tablero de oportunidades"
+          class="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+        >
+          <span>Tablero</span>
+          <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      </div>
+
       @if (isLoading()) {
         <p class="text-xs text-gray-400">Cargando...</p>
       } @else {
-        <ul class="space-y-1.5">
+        <ul class="space-y-2">
           @for (opportunity of opportunities(); track opportunity.id) {
-            <li class="rounded-lg border border-gray-100 px-2.5 py-2 dark:border-gray-800">
+            <li class="rounded-xl border border-gray-200 bg-gray-50/40 p-2.5 dark:border-gray-800 dark:bg-white/[0.02]">
               <div class="flex items-center justify-between gap-2">
-                <span
-                  class="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                  [style.background-color]="(opportunity.stage.color || '#9CA3AF') + '22'"
-                  [style.color]="opportunity.stage.color || '#6B7280'"
-                >
-                  {{ opportunity.stage.name }}
-                </span>
+                <div class="relative flex items-center min-w-0 max-w-[70%]">
+                  <select
+                    [disabled]="updatingOpportunityId() === opportunity.id"
+                    [value]="opportunity.stage.id"
+                    (change)="onStageChange(opportunity, $any($event.target).value)"
+                    class="h-6 w-full appearance-none truncate rounded-full pl-2 pr-5 text-[11px] font-medium border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    [style.background-color]="(opportunity.stage.color || '#9CA3AF') + '22'"
+                    [style.color]="opportunity.stage.color || '#4B5563'"
+                    title="Cambiar etapa"
+                  >
+                    @for (st of stages(); track st.id) {
+                      <option [value]="st.id" [selected]="st.id === opportunity.stage.id" class="bg-white text-gray-900 dark:bg-gray-800 dark:text-white">
+                        {{ st.name }}
+                      </option>
+                    }
+                  </select>
+                  <svg
+                    class="pointer-events-none absolute right-1.5 h-3 w-3"
+                    [style.color]="opportunity.stage.color || '#6B7280'"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+
                 @if (isOpenOpportunity(opportunity)) {
-                  <span class="text-[10px] font-medium text-brand-500">Actual</span>
+                  <span class="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">Actual</span>
                 }
               </div>
+
               @if (opportunity.estimatedValue !== null) {
-                <p class="mt-1 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                <p class="mt-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200">
                   {{ opportunity.estimatedValue | currency: 'PEN' : 'S/ ' }}
                 </p>
               }
-              <p class="text-[11px] text-gray-400">{{ opportunity.createdAt | date: 'dd/MM/yyyy' }}</p>
+
+              @if (opportunity.description) {
+                <p class="mt-1 line-clamp-2 text-[11px] text-gray-500 dark:text-gray-400">
+                  {{ opportunity.description }}
+                </p>
+              }
+
+              <div class="mt-1.5 flex items-center justify-between text-[10px] text-gray-400">
+                <span>{{ opportunity.createdAt | date: 'dd/MM/yyyy' }}</span>
+                @if (updatingOpportunityId() === opportunity.id) {
+                  <span class="text-brand-500 font-medium animate-pulse">Guardando...</span>
+                }
+              </div>
             </li>
           } @empty {
             <p class="text-xs text-gray-400 dark:text-gray-500">Sin oportunidades registradas.</p>

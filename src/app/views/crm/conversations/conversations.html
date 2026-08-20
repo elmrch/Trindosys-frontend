@@ -38,6 +38,10 @@
       (loadOlder)="loadOlderMessages()"
       (statusChange)="changeStatus($event)"
       (toggleProfile)="toggleProfilePanel()"
+      (archiveToggle)="toggleArchive($event)"
+      (markUnread)="markConversationUnread($event)"
+      (blockToggle)="toggleBlock($event)"
+      (exportChat)="exportConversation($event)"
     />
     @if (isProfilePanelOpen()) {
       <app-customer-profile-panel class="hidden min-h-0 lg:block" [customerId]="selectedConversation()?.customer?.id ?? null" />

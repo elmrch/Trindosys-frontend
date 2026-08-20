@@ -1,11 +1,25 @@
 import { DatePipe } from '@angular/common';
-import { Component, ElementRef, effect, input, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { getInitials } from '../../../../../shared/utils/initials.util';
 import { ConversationStatus, ConversationSummary, Message, MessageAttachment } from '../../models/conversation.model';
+import { ConversationService } from '../../services/conversation.service';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
+const SEARCH_DEBOUNCE_MS = 350;
+
+const EMOJIS = [
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+  '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😋', '😛', '😜',
+  '🤪', '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞', '😔',
+  '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
+  '😡', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '🤗',
+  '🤔', '🤭', '🤫', '😶', '😐', '🙄', '😯', '😮', '😲', '😴',
+  '🤤', '🥴', '🤢', '🤧', '😷', '🤒', '🤕', '🥱', '😈', '👍',
+  '👎', '👏', '🙌', '🙏', '💪', '🤝', '👋', '✌️', '🤞', '🎉',
+  '🔥', '💯', '❤️', '💔', '⭐', '✅', '❌', '📌', '🎁', '☕',
+];
 
 const STATUS_OPTIONS: { label: string; value: ConversationStatus }[] = [
   { label: 'Abierta', value: 'OPEN' },
@@ -18,18 +32,24 @@ const STATUS_OPTIONS: { label: string; value: ConversationStatus }[] = [
   imports: [DatePipe, FormsModule],
   templateUrl: './chat-panel.html',
 })
-export class ChatPanel {
+export class ChatPanel implements OnDestroy {
+  private readonly conversationService = inject(ConversationService);
+
   readonly conversation = input<ConversationSummary | null>(null);
   readonly messages = input.required<Message[]>();
   readonly hasMoreOlder = input(false);
   readonly isLoadingOlder = input(false);
   readonly isSending = input(false);
 
-  readonly send = output<string>();
-  readonly sendAttachments = output<{ content: string; files: File[] }>();
+  readonly send = output<{ content: string; replyToMessageId: number | null }>();
+  readonly sendAttachments = output<{ content: string; files: File[]; replyToMessageId: number | null }>();
   readonly loadOlder = output<void>();
   readonly statusChange = output<{ conversation: ConversationSummary; status: ConversationStatus }>();
   readonly toggleProfile = output<void>();
+  readonly archiveToggle = output<ConversationSummary>();
+  readonly markUnread = output<ConversationSummary>();
+  readonly blockToggle = output<ConversationSummary>();
+  readonly exportChat = output<ConversationSummary>();
 
   protected readonly statusOptions = STATUS_OPTIONS;
 
@@ -39,6 +59,37 @@ export class ChatPanel {
   protected readonly selectedFiles = signal<File[]>([]);
   protected readonly attachmentError = signal<string | null>(null);
   protected readonly getInitials = getInitials;
+  protected readonly emojis = EMOJIS;
+
+  protected readonly isEmojiPickerOpen = signal(false);
+  protected readonly isAttachMenuOpen = signal(false);
+  protected readonly isOptionsMenuOpen = signal(false);
+
+  protected readonly isRecording = signal(false);
+  protected readonly recordingSeconds = signal(0);
+  protected readonly formattedRecordingTime = () => {
+    const total = this.recordingSeconds();
+    const minutes = Math.floor(total / 60);
+    const seconds = total % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  protected readonly replyingTo = signal<Message | null>(null);
+
+  protected readonly isSearchOpen = signal(false);
+  protected readonly searchQuery = signal('');
+  protected readonly searchResults = signal<Message[]>([]);
+  protected readonly isSearching = signal(false);
+  protected readonly searchNotice = signal<string | null>(null);
+
+  private mediaRecorder: MediaRecorder | null = null;
+  private recordedChunks: Blob[] = [];
+  private recordingStream: MediaStream | null = null;
+  private recordingIntervalId: ReturnType<typeof setInterval> | null = null;
+  private pendingSendAfterStop = false;
+
+  private readonly previewUrls = new Map<File, string>();
+  private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
 
   private trackedConversationId: number | null = null;
   private lastMessageId: number | null = null;
@@ -56,6 +107,8 @@ export class ChatPanel {
       if (isNewConversation) {
         this.trackedConversationId = conversationId;
         this.lastMessageId = lastId;
+        this.closeSearch();
+        this.replyingTo.set(null);
         if (list.length) {
           queueMicrotask(() => this.scrollToBottom());
         }
@@ -69,8 +122,20 @@ export class ChatPanel {
     });
   }
 
+  ngOnDestroy(): void {
+    this.previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.previewUrls.clear();
+    if (this.searchDebounceId !== null) {
+      clearTimeout(this.searchDebounceId);
+    }
+  }
+
   protected isOutbound(message: Message): boolean {
     return message.direction === 'OUTBOUND';
+  }
+
+  protected isOnline(conversation: ConversationSummary): boolean {
+    return conversation.online === true;
   }
 
   protected onStatusChange(value: string): void {
@@ -115,25 +180,255 @@ export class ChatPanel {
   }
 
   protected removeFile(file: File): void {
+    const url = this.previewUrls.get(file);
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.previewUrls.delete(file);
+    }
     this.selectedFiles.update((current) => current.filter((f) => f !== file));
+  }
+
+  protected isPreviewableImage(file: File): boolean {
+    return file.type.startsWith('image/');
+  }
+
+  protected getPreviewUrl(file: File): string {
+    let url = this.previewUrls.get(file);
+    if (!url) {
+      url = URL.createObjectURL(file);
+      this.previewUrls.set(file, url);
+    }
+    return url;
   }
 
   protected onSubmit(): void {
     const content = this.draft().trim();
     const files = this.selectedFiles();
+    const replyToMessageId = this.replyingTo()?.id ?? null;
 
     if (!content && files.length === 0) {
       return;
     }
 
     if (files.length > 0) {
-      this.sendAttachments.emit({ content, files });
-      this.selectedFiles.set([]);
+      this.sendAttachments.emit({ content, files, replyToMessageId });
+      this.clearSelectedFiles();
     } else {
-      this.send.emit(content);
+      this.send.emit({ content, replyToMessageId });
     }
 
     this.draft.set('');
+    this.replyingTo.set(null);
+  }
+
+  protected toggleEmojiPicker(): void {
+    this.isAttachMenuOpen.set(false);
+    this.isEmojiPickerOpen.update((value) => !value);
+  }
+
+  protected insertEmoji(emoji: string): void {
+    this.draft.update((value) => value + emoji);
+  }
+
+  protected toggleAttachMenu(): void {
+    this.isEmojiPickerOpen.set(false);
+    this.isAttachMenuOpen.update((value) => !value);
+  }
+
+  protected openMediaPicker(input: HTMLInputElement): void {
+    this.isAttachMenuOpen.set(false);
+    input.click();
+  }
+
+  protected openDocumentPicker(input: HTMLInputElement): void {
+    this.isAttachMenuOpen.set(false);
+    input.click();
+  }
+
+  protected async startRecording(): Promise<void> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.recordingStream = stream;
+      this.recordedChunks = [];
+
+      const recorder = new MediaRecorder(stream);
+      this.mediaRecorder = recorder;
+
+      recorder.addEventListener('dataavailable', (event) => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
+        }
+      });
+
+      recorder.addEventListener('stop', () => this.onRecordingStopped());
+
+      recorder.start();
+      this.isRecording.set(true);
+      this.recordingSeconds.set(0);
+      this.recordingIntervalId = setInterval(() => this.recordingSeconds.update((s) => s + 1), 1000);
+    } catch {
+      this.attachmentError.set('No se pudo acceder al micrófono. Revisa los permisos del navegador.');
+    }
+  }
+
+  protected cancelRecording(): void {
+    this.stopRecordingInternal(false);
+  }
+
+  protected confirmRecording(): void {
+    this.stopRecordingInternal(true);
+  }
+
+  private stopRecordingInternal(send: boolean): void {
+    this.pendingSendAfterStop = send;
+    this.mediaRecorder?.stop();
+    this.recordingStream?.getTracks().forEach((track) => track.stop());
+
+    if (this.recordingIntervalId !== null) {
+      clearInterval(this.recordingIntervalId);
+      this.recordingIntervalId = null;
+    }
+
+    this.isRecording.set(false);
+  }
+
+  private onRecordingStopped(): void {
+    const shouldSend = this.pendingSendAfterStop;
+    const mimeType = this.mediaRecorder?.mimeType || 'audio/webm';
+    const chunks = this.recordedChunks;
+    this.recordedChunks = [];
+    this.mediaRecorder = null;
+    this.recordingStream = null;
+
+    if (!shouldSend || chunks.length === 0) {
+      return;
+    }
+
+    const blob = new Blob(chunks, { type: mimeType });
+    const extension = mimeType.includes('ogg') ? 'ogg' : 'webm';
+    const file = new File([blob], `nota-voz-${Date.now()}.${extension}`, { type: mimeType });
+    this.sendAttachments.emit({ content: '', files: [file], replyToMessageId: null });
+  }
+
+  protected startReply(message: Message): void {
+    this.replyingTo.set(message);
+  }
+
+  protected cancelReply(): void {
+    this.replyingTo.set(null);
+  }
+
+  protected replyPreviewText(message: Message): string {
+    return message.content?.trim() ? message.content : 'Archivo adjunto';
+  }
+
+  protected toggleOptionsMenu(): void {
+    this.isOptionsMenuOpen.update((value) => !value);
+  }
+
+  protected onArchiveClick(): void {
+    const conversation = this.conversation();
+    this.isOptionsMenuOpen.set(false);
+    if (conversation) {
+      this.archiveToggle.emit(conversation);
+    }
+  }
+
+  protected onMarkUnreadClick(): void {
+    const conversation = this.conversation();
+    this.isOptionsMenuOpen.set(false);
+    if (conversation) {
+      this.markUnread.emit(conversation);
+    }
+  }
+
+  protected onBlockClick(): void {
+    const conversation = this.conversation();
+    this.isOptionsMenuOpen.set(false);
+    if (conversation) {
+      this.blockToggle.emit(conversation);
+    }
+  }
+
+  protected onExportClick(): void {
+    const conversation = this.conversation();
+    this.isOptionsMenuOpen.set(false);
+    if (conversation) {
+      this.exportChat.emit(conversation);
+    }
+  }
+
+  protected toggleSearch(): void {
+    if (this.isSearchOpen()) {
+      this.closeSearch();
+    } else {
+      this.isSearchOpen.set(true);
+    }
+  }
+
+  protected closeSearch(): void {
+    this.isSearchOpen.set(false);
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.searchNotice.set(null);
+    if (this.searchDebounceId !== null) {
+      clearTimeout(this.searchDebounceId);
+      this.searchDebounceId = null;
+    }
+  }
+
+  protected onSearchInput(value: string): void {
+    this.searchQuery.set(value);
+    this.searchNotice.set(null);
+
+    if (this.searchDebounceId !== null) {
+      clearTimeout(this.searchDebounceId);
+    }
+
+    const query = value.trim();
+    if (!query) {
+      this.searchResults.set([]);
+      return;
+    }
+
+    this.searchDebounceId = setTimeout(() => this.runSearch(query), SEARCH_DEBOUNCE_MS);
+  }
+
+  private runSearch(query: string): void {
+    const conversation = this.conversation();
+    if (!conversation) {
+      return;
+    }
+
+    this.isSearching.set(true);
+    this.conversationService.searchMessages(conversation.id, query).subscribe({
+      next: (page) => {
+        this.isSearching.set(false);
+        this.searchResults.set(page.content);
+      },
+      error: () => {
+        this.isSearching.set(false);
+        this.searchNotice.set('No se pudo buscar en la conversación.');
+      },
+    });
+  }
+
+  protected jumpToMessage(messageId: number): void {
+    const element = document.getElementById('msg-' + messageId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-brand-400');
+      setTimeout(() => element.classList.remove('ring-2', 'ring-brand-400'), 1500);
+      this.closeSearch();
+    } else {
+      this.searchNotice.set('Ese mensaje es más antiguo — usa "Cargar mensajes anteriores" para verlo.');
+    }
+  }
+
+  private clearSelectedFiles(): void {
+    this.previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.previewUrls.clear();
+    this.selectedFiles.set([]);
   }
 
   private scrollToBottom(): void {

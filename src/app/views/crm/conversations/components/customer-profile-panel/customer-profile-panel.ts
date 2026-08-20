@@ -1,24 +1,34 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, effect, inject, input, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, input, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { SweetAlertService } from '../../../../../core/services/sweet-alert.service';
 import { Activity } from '../../../activities/models/activity.model';
 import { ActivityService } from '../../../activities/services/activity.service';
 import { Customer } from '../../../customers/models/customer.model';
 import { CustomerService } from '../../../customers/services/customer.service';
 import { Opportunity } from '../../../opportunities/models/opportunity.model';
+import { PipelineStage } from '../../../opportunities/models/pipeline-stage.model';
+import { OpportunityService } from '../../../opportunities/services/opportunity.service';
+import { PipelineStageService } from '../../../opportunities/services/pipeline-stage.service';
 
 @Component({
   selector: 'app-customer-profile-panel',
-  imports: [DatePipe, CurrencyPipe],
+  imports: [DatePipe, CurrencyPipe, RouterLink],
   templateUrl: './customer-profile-panel.html',
 })
-export class CustomerProfilePanel {
+export class CustomerProfilePanel implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly activityService = inject(ActivityService);
+  private readonly opportunityService = inject(OpportunityService);
+  private readonly pipelineStageService = inject(PipelineStageService);
+  private readonly sweetAlert = inject(SweetAlertService);
 
   readonly customerId = input<number | null>(null);
 
   protected readonly customer = signal<Customer | null>(null);
   protected readonly opportunities = signal<Opportunity[]>([]);
+  protected readonly stages = signal<PipelineStage[]>([]);
+  protected readonly updatingOpportunityId = signal<number | null>(null);
   protected readonly notes = signal<Activity[]>([]);
   protected readonly isLoading = signal(false);
 
@@ -27,6 +37,12 @@ export class CustomerProfilePanel {
 
   protected readonly newNote = signal('');
   protected readonly isSavingNote = signal(false);
+
+  ngOnInit(): void {
+    this.pipelineStageService.list().subscribe({
+      next: (stages) => this.stages.set(stages),
+    });
+  }
 
   constructor() {
     effect(() => {
@@ -56,6 +72,28 @@ export class CustomerProfilePanel {
 
   protected isOpenOpportunity(opportunity: Opportunity): boolean {
     return opportunity.stage.type === 'OPEN';
+  }
+
+  protected onStageChange(opportunity: Opportunity, targetStageId: string | number): void {
+    const stageId = Number(targetStageId);
+    if (!stageId || opportunity.stage.id === stageId) {
+      return;
+    }
+
+    this.updatingOpportunityId.set(opportunity.id);
+    this.opportunityService.moveStage(opportunity.id, stageId).subscribe({
+      next: (updated) => {
+        this.updatingOpportunityId.set(null);
+        this.opportunities.update((list) =>
+          list.map((item) => (item.id === updated.id ? updated : item)),
+        );
+        this.sweetAlert.toast('Etapa de oportunidad actualizada.');
+      },
+      error: () => {
+        this.updatingOpportunityId.set(null);
+        this.sweetAlert.error('No se pudo cambiar la etapa de la oportunidad.');
+      },
+    });
   }
 
   protected addTag(): void {

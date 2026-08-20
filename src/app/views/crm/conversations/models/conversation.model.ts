@@ -11,12 +11,21 @@ export interface ConversationSummary {
   lastActivityAt: string;
   lastMessagePreview: string;
   unreadCount: number;
+  /** null = el canal no expone presencia real (WhatsApp/Instagram/Messenger); solo aplica a WEBCHAT. */
+  online: boolean | null;
+  archived: boolean;
 }
 
 export interface MessageAttachment {
   url: string;
   mimeType: string;
   fileName: string;
+}
+
+export interface MessageReplyPreview {
+  id: number;
+  direction: string;
+  contentPreview: string | null;
 }
 
 export interface Message {
@@ -29,10 +38,12 @@ export interface Message {
   deliveryStatus: string;
   senderAdvisorId: number | null;
   createdAt: string;
+  replyTo: MessageReplyPreview | null;
 }
 
 export interface SendMessageRequest {
   content: string;
+  replyToMessageId?: number | null;
 }
 
 export interface AgentInboxEvent {

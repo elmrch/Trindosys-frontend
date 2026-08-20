@@ -12,7 +12,15 @@ import { UnifiedInbox } from './components/unified-inbox/unified-inbox';
 import { AgentInboxEvent, ConversationStatus, ConversationSummary, Message } from './models/conversation.model';
 import { ConversationService } from './services/conversation.service';
 
-const RELEVANT_EVENT_TYPES = ['new_message', 'conversation_assigned', 'conversation_read', 'conversation_status'];
+const RELEVANT_EVENT_TYPES = [
+  'new_message',
+  'conversation_assigned',
+  'conversation_read',
+  'conversation_status',
+  'conversation_archived',
+  'conversation_unread',
+  'conversation_blocked',
+];
 
 @Component({
   selector: 'app-conversations',
@@ -152,43 +160,88 @@ export class Conversations implements OnInit {
     this.loadMessages(conversation.id, this.currentPage + 1, true);
   }
 
-  protected sendMessage(content: string): void {
+  protected sendMessage(payload: { content: string; replyToMessageId: number | null }): void {
     const conversation = this.selectedConversation();
     if (!conversation) {
       return;
     }
 
     this.isSending.set(true);
-    this.conversationService.sendMessage(conversation.id, { content }).subscribe({
-      next: (message) => {
-        this.isSending.set(false);
-        this.appendMessage(message);
+    this.conversationService
+      .sendMessage(conversation.id, { content: payload.content, replyToMessageId: payload.replyToMessageId })
+      .subscribe({
+        next: (message) => {
+          this.isSending.set(false);
+          this.appendMessage(message);
+        },
+        error: () => {
+          this.isSending.set(false);
+          this.errorMessage.set('No se pudo enviar el mensaje.');
+        },
+      });
+  }
+
+  protected sendAttachments(payload: { content: string; files: File[]; replyToMessageId: number | null }): void {
+    const conversation = this.selectedConversation();
+    if (!conversation) {
+      return;
+    }
+
+    this.isSending.set(true);
+    this.conversationService
+      .sendAttachments(conversation.id, payload.content, payload.files, payload.replyToMessageId)
+      .subscribe({
+        next: (message) => {
+          this.isSending.set(false);
+          this.appendMessage(message);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.isSending.set(false);
+          this.errorMessage.set(
+            error.status === 413 ? 'El archivo es demasiado grande.' : 'No se pudo enviar el adjunto.',
+          );
+        },
+      });
+  }
+
+  protected toggleArchive(conversation: ConversationSummary): void {
+    this.conversationService.setArchived(conversation.id, !conversation.archived).subscribe({
+      next: (updated) => {
+        this.applyConversationUpdate(updated);
+        if (updated.archived && this.selectedConversation()?.id === updated.id) {
+          this.selectedConversation.set(null);
+          this.messages.set([]);
+        }
       },
-      error: () => {
-        this.isSending.set(false);
-        this.errorMessage.set('No se pudo enviar el mensaje.');
-      },
+      error: () => this.errorMessage.set('No se pudo archivar la conversación.'),
     });
   }
 
-  protected sendAttachments(payload: { content: string; files: File[] }): void {
-    const conversation = this.selectedConversation();
-    if (!conversation) {
-      return;
-    }
+  protected markConversationUnread(conversation: ConversationSummary): void {
+    this.conversationService.markUnread(conversation.id).subscribe({
+      next: (updated) => this.applyConversationUpdate(updated),
+      error: () => this.errorMessage.set('No se pudo marcar como no leído.'),
+    });
+  }
 
-    this.isSending.set(true);
-    this.conversationService.sendAttachments(conversation.id, payload.content, payload.files).subscribe({
-      next: (message) => {
-        this.isSending.set(false);
-        this.appendMessage(message);
+  protected toggleBlock(conversation: ConversationSummary): void {
+    this.conversationService.setBlocked(conversation.id, !conversation.customer.blocked).subscribe({
+      next: (updated) => this.applyConversationUpdate(updated),
+      error: () => this.errorMessage.set('No se pudo actualizar el bloqueo del cliente.'),
+    });
+  }
+
+  protected exportConversation(conversation: ConversationSummary): void {
+    this.conversationService.exportConversation(conversation.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `conversacion-${conversation.id}.txt`;
+        anchor.click();
+        URL.revokeObjectURL(url);
       },
-      error: (error: HttpErrorResponse) => {
-        this.isSending.set(false);
-        this.errorMessage.set(
-          error.status === 413 ? 'El archivo es demasiado grande.' : 'No se pudo enviar el adjunto.',
-        );
-      },
+      error: () => this.errorMessage.set('No se pudo exportar la conversación.'),
     });
   }
 

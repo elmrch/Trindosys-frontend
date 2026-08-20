@@ -31,10 +31,11 @@ export class OpportunityCard {
 
   protected readonly advisorName = computed(() => {
     const id = this.opportunity().advisorId;
-    if (id === null) {
-      return null;
+    if (!id) {
+      return this.opportunity().advisorName ?? null;
     }
-    return this.advisors().find((advisor) => advisor.id === id)?.fullName ?? `Asesor #${id}`;
+    const advisor = this.advisors().find((a) => a.id === id);
+    return advisor ? advisor.fullName : (this.opportunity().advisorName ?? `Asesor #${id}`);
   });
 
   protected readonly daysInStage = computed(() => {

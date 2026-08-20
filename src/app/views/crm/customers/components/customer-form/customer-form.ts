@@ -3,6 +3,7 @@ import { Component, computed, effect, inject, input, output, signal } from '@ang
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Customer, CustomerRequest } from '../../models/customer.model';
 import { CustomerService } from '../../services/customer.service';
+import { Advisor } from '../../../../../shared/models/advisor.model';
 
 @Component({
   selector: 'app-customer-form',
@@ -17,7 +18,7 @@ export class CustomerForm {
 
   readonly saved = output<void>();
   readonly cancel = output<void>();
-
+  readonly advisors = input<Advisor[]>([]);
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isEditMode = computed(() => this.customer() !== null);
@@ -28,7 +29,7 @@ export class CustomerForm {
     phone: [''],
     company: [''],
     sourceCampaign: [''],
-    advisorId: [''],
+    advisorId: [null as number | null],
     notes: [''],
   });
 
@@ -42,7 +43,7 @@ export class CustomerForm {
           phone: existing.phone ?? '',
           company: existing.company ?? '',
           sourceCampaign: existing.sourceCampaign ?? '',
-          advisorId: existing.advisorId != null ? String(existing.advisorId) : '',
+          advisorId: existing.advisorId,
           notes: existing.notes ?? '',
         });
       } else {
@@ -52,7 +53,7 @@ export class CustomerForm {
           phone: '',
           company: '',
           sourceCampaign: '',
-          advisorId: '',
+          advisorId: null,
           notes: '',
         });
       }
@@ -73,7 +74,7 @@ export class CustomerForm {
       company: raw.company || null,
       sourceCampaign: raw.sourceCampaign || null,
       notes: raw.notes || null,
-      advisorId: raw.advisorId ? Number(raw.advisorId) : null,
+      advisorId: raw.advisorId,
     };
 
     this.errorMessage.set(null);

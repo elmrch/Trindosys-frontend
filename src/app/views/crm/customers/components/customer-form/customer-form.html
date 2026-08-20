@@ -89,14 +89,24 @@
         </div>
       </div>
 
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">ID del asesor (opcional)</label>
-        <input
-          type="number"
-          formControlName="advisorId"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-        />
-      </div>
+<div>
+  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+    Asesor
+  </label>
+
+  <select
+    formControlName="advisorId"
+    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+  >
+    <option [ngValue]="null">Sin asesor</option>
+
+    @for (advisor of advisors(); track advisor.id) {
+      <option [ngValue]="advisor.id">
+        {{ advisor.fullName }}
+      </option>
+    }
+  </select>
+</div>
 
       <div>
         <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>

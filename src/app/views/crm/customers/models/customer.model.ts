@@ -8,6 +8,7 @@ export interface Customer {
   sourceCampaign: string | null;
   notes: string | null;
   advisorId: number | null;
+  advisorName: string | null;
   createdAt: string;
   createdBy: number | null;
   updatedAt: string | null;

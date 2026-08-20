@@ -16,6 +16,7 @@ export interface Opportunity {
   closedAt: string | null;
   stageChangedAt: string;
   activityCount: number;
+  advisorName?: string | null;
 }
 
 export interface OpportunityRequest {
