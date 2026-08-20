@@ -1,27 +1,40 @@
 @if (customer(); as customer) {
-  <div class="flex h-full flex-col overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
-    <div>
-      <p class="text-sm font-semibold text-gray-800 dark:text-white">{{ customer.name }}</p>
-      <p class="text-xs text-gray-500 dark:text-gray-400">{{ customer.phone || 'Sin teléfono' }}</p>
-      @if (customer.email) {
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ customer.email }}</p>
-      }
-      @if (customer.company) {
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ customer.company }}</p>
-      }
+  <div class="flex h-full flex-col overflow-y-auto rounded-md border border-gray-200 bg-white divide-y divide-gray-200 dark:border-gray-800 dark:bg-white/[0.03] dark:divide-gray-800">
+    <!-- Contact Info Section -->
+    <div class="p-4">
+      <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ customer.name }}</p>
+      <div class="mt-2 space-y-1.5 text-xs">
+        <div>
+          <span class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Teléfono</span>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.phone || 'Sin teléfono' }}</p>
+        </div>
+        @if (customer.email) {
+          <div>
+            <span class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Correo</span>
+            <p class="truncate text-sm font-medium text-gray-900 dark:text-white">{{ customer.email }}</p>
+          </div>
+        }
+        @if (customer.company) {
+          <div>
+            <span class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Empresa</span>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.company }}</p>
+          </div>
+        }
+      </div>
     </div>
 
-    <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Etiquetas</p>
+    <!-- Tags Section -->
+    <div class="p-4">
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Etiquetas</p>
       <div class="flex flex-wrap gap-1.5">
         @for (tag of customer.tags; track tag) {
           <span
-            class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
+            class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-300"
           >
             {{ tag }}
-            <button type="button" (click)="removeTag(tag)" aria-label="Quitar etiqueta" class="hover:text-brand-800 dark:hover:text-brand-200">
-              <svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            <button type="button" (click)="removeTag(tag)" aria-label="Quitar etiqueta" class="text-gray-400 hover:text-gray-600 dark:hover:text-white">
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
               </svg>
             </button>
           </span>
@@ -36,29 +49,30 @@
           [value]="newTag()"
           (input)="newTag.set($any($event.target).value)"
           (keydown.enter)="addTag()"
-          class="h-8 flex-1 rounded-lg border border-gray-200 bg-transparent px-2.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-800 dark:text-white"
+          class="h-7 flex-1 rounded-md border border-gray-200 bg-transparent px-2 text-xs text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-800 dark:text-white"
         />
         <button
           type="button"
           [disabled]="isSavingTags() || !newTag().trim()"
           (click)="addTag()"
-          class="rounded-lg bg-brand-500 px-2.5 text-xs font-medium text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white/10 dark:text-gray-200"
         >
-          Agregar
+          + Añadir
         </button>
       </div>
     </div>
 
-    <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
+    <!-- Opportunities Section -->
+    <div class="p-4">
       <div class="mb-2 flex items-center justify-between">
-        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Oportunidades</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Oportunidades</p>
         <a
           routerLink="/crm/opportunities"
           title="Ir al tablero de oportunidades"
-          class="flex items-center gap-1 text-[11px] font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+          class="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
         >
           <span>Tablero</span>
-          <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </a>
@@ -69,14 +83,14 @@
       } @else {
         <ul class="space-y-2">
           @for (opportunity of opportunities(); track opportunity.id) {
-            <li class="rounded-xl border border-gray-200 bg-gray-50/40 p-2.5 dark:border-gray-800 dark:bg-white/[0.02]">
+            <li class="rounded-md border border-gray-200 bg-gray-50/50 p-2.5 dark:border-gray-800 dark:bg-white/[0.02]">
               <div class="flex items-center justify-between gap-2">
                 <div class="relative flex items-center min-w-0 max-w-[70%]">
                   <select
                     [disabled]="updatingOpportunityId() === opportunity.id"
                     [value]="opportunity.stage.id"
                     (change)="onStageChange(opportunity, $any($event.target).value)"
-                    class="h-6 w-full appearance-none truncate rounded-full pl-2 pr-5 text-[11px] font-medium border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                    class="h-6 w-full appearance-none truncate rounded px-2 pr-5 text-[11px] font-semibold border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                     [style.background-color]="(opportunity.stage.color || '#9CA3AF') + '22'"
                     [style.color]="opportunity.stage.color || '#4B5563'"
                     title="Cambiar etapa"
@@ -99,18 +113,18 @@
                 </div>
 
                 @if (isOpenOpportunity(opportunity)) {
-                  <span class="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">Actual</span>
+                  <span class="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">Actual</span>
                 }
               </div>
 
               @if (opportunity.estimatedValue !== null) {
-                <p class="mt-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200">
+                <p class="mt-1.5 text-xs font-semibold text-gray-900 dark:text-white">
                   {{ opportunity.estimatedValue | currency: 'PEN' : 'S/ ' }}
                 </p>
               }
 
               @if (opportunity.description) {
-                <p class="mt-1 line-clamp-2 text-[11px] text-gray-500 dark:text-gray-400">
+                <p class="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
                   {{ opportunity.description }}
                 </p>
               }
@@ -118,7 +132,7 @@
               <div class="mt-1.5 flex items-center justify-between text-[10px] text-gray-400">
                 <span>{{ opportunity.createdAt | date: 'dd/MM/yyyy' }}</span>
                 @if (updatingOpportunityId() === opportunity.id) {
-                  <span class="text-brand-500 font-medium animate-pulse">Guardando...</span>
+                  <span class="text-blue-600 font-medium animate-pulse">Guardando...</span>
                 }
               </div>
             </li>
@@ -129,32 +143,33 @@
       }
     </div>
 
-    <div class="mt-4 border-t border-gray-100 pt-4 dark:border-gray-800">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Notas internas</p>
-      <div class="flex gap-1.5">
+    <!-- Notes Section -->
+    <div class="p-4">
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notas internas</p>
+      <div class="space-y-1.5">
         <textarea
           rows="2"
           placeholder="Agregar una nota..."
           [value]="newNote()"
           (input)="newNote.set($any($event.target).value)"
-          class="flex-1 rounded-lg border border-gray-200 bg-transparent px-2.5 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none dark:border-gray-800 dark:text-white"
+          class="w-full rounded-md border border-gray-200 bg-transparent px-2.5 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-800 dark:text-white"
         ></textarea>
-      </div>
-      <div class="mt-1.5 flex justify-end">
-        <button
-          type="button"
-          [disabled]="isSavingNote() || !newNote().trim()"
-          (click)="addNote()"
-          class="rounded-lg bg-brand-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {{ isSavingNote() ? 'Guardando...' : 'Agregar nota' }}
-        </button>
+        <div class="flex justify-end">
+          <button
+            type="button"
+            [disabled]="isSavingNote() || !newNote().trim()"
+            (click)="addNote()"
+            class="rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {{ isSavingNote() ? 'Guardando...' : 'Agregar nota' }}
+          </button>
+        </div>
       </div>
 
       <ul class="mt-3 space-y-2">
         @for (note of notes(); track note.id) {
-          <li class="rounded-lg bg-gray-50 px-2.5 py-2 text-xs text-gray-600 dark:bg-white/5 dark:text-gray-300">
-            <p class="whitespace-pre-line">{{ note.content }}</p>
+          <li class="rounded-md border border-gray-100 bg-gray-50/60 p-2.5 text-xs text-gray-700 dark:border-gray-800 dark:bg-white/5 dark:text-gray-300">
+            <p class="whitespace-pre-line text-sm">{{ note.content }}</p>
             <p class="mt-1 text-[10px] text-gray-400">{{ note.authorName }} · {{ note.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
           </li>
         } @empty {
@@ -164,7 +179,7 @@
     </div>
   </div>
 } @else {
-  <div class="flex h-full items-center justify-center rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="flex h-full items-center justify-center rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
     <p class="px-4 text-center text-xs text-gray-400 dark:text-gray-500">Selecciona una conversación para ver el perfil del cliente.</p>
   </div>
 }

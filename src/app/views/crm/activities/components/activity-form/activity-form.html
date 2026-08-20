@@ -1,13 +1,14 @@
-<div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
-  <div class="flex flex-wrap gap-2">
+<div class="rounded-md border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+  <!-- Tabs de tipo de actividad (Underline style) -->
+  <div class="flex items-center gap-6 border-b border-gray-200 pb-px dark:border-gray-800">
     @for (tab of typeTabs; track tab.value) {
       <button
         type="button"
-        class="rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+        class="border-b-2 py-2.5 text-xs font-medium transition-colors"
         [class]="
           selectedType() === tab.value
-            ? 'bg-brand-500 text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'
+            ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+            : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
         "
         (click)="selectType(tab.value)"
       >
@@ -21,21 +22,21 @@
       <form class="mt-4 space-y-3" [formGroup]="callForm" (ngSubmit)="submit()" novalidate>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha y hora</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha y hora</label>
             <input
               type="datetime-local"
               formControlName="occurredAt"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
             @if (callForm.controls.occurredAt.invalid && callForm.controls.occurredAt.touched) {
-              <p class="mt-1.5 text-xs font-medium text-red-600">La fecha es obligatoria.</p>
+              <p class="mt-1 text-xs font-medium text-red-600">La fecha es obligatoria.</p>
             }
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Resultado</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Resultado</label>
             <select
               formControlName="result"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             >
               <option value="ANSWERED">Contestó</option>
               <option value="NOT_ANSWERED">No contestó</option>
@@ -44,18 +45,18 @@
           </div>
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (opcional)</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Notas (opcional)</label>
           <textarea
             formControlName="notes"
             rows="2"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           ></textarea>
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end pt-1">
           <button
             type="submit"
             [disabled]="isSubmitting()"
-            class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+            class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {{ isSubmitting() ? 'Guardando...' : 'Registrar llamada' }}
           </button>
@@ -65,43 +66,43 @@
     @case ('TASK') {
       <form class="mt-4 space-y-3" [formGroup]="taskForm" (ngSubmit)="submit()" novalidate>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Descripción</label>
           <textarea
             formControlName="description"
             rows="2"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           ></textarea>
           @if (taskForm.controls.description.invalid && taskForm.controls.description.touched) {
-            <p class="mt-1.5 text-xs font-medium text-red-600">La descripción es obligatoria.</p>
+            <p class="mt-1 text-xs font-medium text-red-600">La descripción es obligatoria.</p>
           }
         </div>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de vencimiento</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha de vencimiento</label>
             <input
               type="datetime-local"
               formControlName="dueDate"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
             @if (taskForm.controls.dueDate.invalid && taskForm.controls.dueDate.touched) {
-              <p class="mt-1.5 text-xs font-medium text-red-600">La fecha de vencimiento es obligatoria.</p>
+              <p class="mt-1 text-xs font-medium text-red-600">La fecha de vencimiento es obligatoria.</p>
             }
           </div>
           <div>
-            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Asesor responsable (opcional)</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Asesor responsable (opcional)</label>
             <input
               type="number"
               formControlName="assignedAdvisorId"
               placeholder="ID del asesor"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
           </div>
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end pt-1">
           <button
             type="submit"
             [disabled]="isSubmitting()"
-            class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+            class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {{ isSubmitting() ? 'Guardando...' : 'Registrar tarea' }}
           </button>
@@ -111,21 +112,21 @@
     @case ('NOTE') {
       <form class="mt-4 space-y-3" [formGroup]="noteForm" (ngSubmit)="submit()" novalidate>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Nota</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Nota</label>
           <textarea
             formControlName="content"
             rows="3"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           ></textarea>
           @if (noteForm.controls.content.invalid && noteForm.controls.content.touched) {
-            <p class="mt-1.5 text-xs font-medium text-red-600">La nota no puede estar vacía.</p>
+            <p class="mt-1 text-xs font-medium text-red-600">La nota no puede estar vacía.</p>
           }
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end pt-1">
           <button
             type="submit"
             [disabled]="isSubmitting()"
-            class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+            class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {{ isSubmitting() ? 'Guardando...' : 'Agregar nota' }}
           </button>
@@ -135,32 +136,32 @@
     @case ('FOLLOW_UP') {
       <form class="mt-4 space-y-3" [formGroup]="followUpForm" (ngSubmit)="submit()" novalidate>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha objetivo</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Fecha objetivo</label>
           <input
             type="datetime-local"
             formControlName="targetDate"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
           @if (followUpForm.controls.targetDate.invalid && followUpForm.controls.targetDate.touched) {
-            <p class="mt-1.5 text-xs font-medium text-red-600">La fecha objetivo es obligatoria.</p>
+            <p class="mt-1 text-xs font-medium text-red-600">La fecha objetivo es obligatoria.</p>
           }
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Motivo</label>
           <textarea
             formControlName="reason"
             rows="2"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           ></textarea>
           @if (followUpForm.controls.reason.invalid && followUpForm.controls.reason.touched) {
-            <p class="mt-1.5 text-xs font-medium text-red-600">El motivo es obligatorio.</p>
+            <p class="mt-1 text-xs font-medium text-red-600">El motivo es obligatorio.</p>
           }
         </div>
-        <div class="flex justify-end">
+        <div class="flex justify-end pt-1">
           <button
             type="submit"
             [disabled]="isSubmitting()"
-            class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+            class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {{ isSubmitting() ? 'Guardando...' : 'Programar seguimiento' }}
           </button>

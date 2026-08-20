@@ -1,12 +1,12 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="cancel.emit()">
   <div
-    class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+    class="w-full max-w-lg overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
     (click)="$event.stopPropagation()"
   >
-    <div class="flex items-center justify-between gap-3 bg-brand-500 px-6 py-4">
-      <div class="flex items-center gap-3">
-        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-white">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div class="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+          <svg class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M11 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19.5 19v-1a3 3 0 0 0-2.5-2.96M15 4.13a3 3 0 0 1 0 5.75"
               stroke="currentColor"
@@ -16,13 +16,13 @@
             />
           </svg>
         </span>
-        <h2 class="text-base font-semibold text-white">
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">
           {{ isEditMode() ? 'Editar Contacto' : 'Nuevo Contacto' }}
         </h2>
       </div>
       <button
         type="button"
-        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+        class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
         (click)="cancel.emit()"
         aria-label="Cerrar"
       >
@@ -32,95 +32,93 @@
       </button>
     </div>
 
-    <div class="p-6">
-    <form class="max-h-[70vh] space-y-4 overflow-y-auto pr-1" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="p-5">
+    <form class="max-h-[70vh] space-y-3.5 overflow-y-auto pr-1" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       @if (errorMessage()) {
-        <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+        <p class="rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ errorMessage() }}</p>
       }
 
       <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
+        <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Nombre</label>
         <input
           type="text"
           formControlName="name"
           placeholder="Nombre del cliente"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         />
         @if (form.controls.name.invalid && form.controls.name.touched) {
-          <p class="mt-1.5 text-xs font-medium text-red-600">El nombre es obligatorio.</p>
+          <p class="mt-1 text-xs font-medium text-red-600">El nombre es obligatorio.</p>
         }
       </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</label>
           <input
             type="email"
             formControlName="email"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Teléfono</label>
           <input
             type="text"
             formControlName="phone"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Empresa</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Empresa</label>
           <input
             type="text"
             formControlName="company"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Campaña de origen</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Campaña de origen</label>
           <input
             type="text"
             formControlName="sourceCampaign"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
         </div>
       </div>
 
-<div>
-  <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-    Asesor
-  </label>
-
-  <select
-    formControlName="advisorId"
-    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-  >
-    <option [ngValue]="null">Sin asesor</option>
-
-    @for (advisor of advisors(); track advisor.id) {
-      <option [ngValue]="advisor.id">
-        {{ advisor.fullName }}
-      </option>
-    }
-  </select>
-</div>
+      <div>
+        <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Asesor
+        </label>
+        <select
+          formControlName="advisorId"
+          class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+        >
+          <option [ngValue]="null">Sin asesor</option>
+          @for (advisor of advisors(); track advisor.id) {
+            <option [ngValue]="advisor.id">
+              {{ advisor.fullName }}
+            </option>
+          }
+        </select>
+      </div>
 
       <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
+        <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Notas</label>
         <textarea
           formControlName="notes"
           rows="3"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         ></textarea>
       </div>
 
       <div class="flex justify-end gap-2 pt-2">
         <button
           type="button"
-          class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+          class="rounded-md border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
           (click)="cancel.emit()"
         >
           Cancelar
@@ -128,7 +126,7 @@
         <button
           type="submit"
           [disabled]="isSubmitting()"
-          class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+          class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {{ isSubmitting() ? 'Guardando...' : 'Guardar' }}
         </button>
