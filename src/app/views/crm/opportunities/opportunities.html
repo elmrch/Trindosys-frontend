@@ -1,101 +1,392 @@
-<div class="space-y-4">
-  <div class="flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="rounded-lg bg-brand-50 p-2 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M4 19V9m6 10V5m6 14v-6"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+<div class="space-y-3">
+  <!-- Cabecera y Barra de Filtros Integradas (Estilo HubSpot en un solo bloque continuo) -->
+  <div class="rounded-md border border-gray-200 bg-white divide-y divide-gray-200 dark:border-gray-800 dark:bg-white/[0.03] dark:divide-gray-800">
+    
+    <!-- Fila 1: Título y Acciones Principales -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+          <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M4 19V9m6 10V5m6 14v-6"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-gray-900 dark:text-white leading-tight">Oportunidades</h1>
+          <p class="text-[11px] text-gray-500 dark:text-gray-400">Arrastra las tarjetas entre columnas para cambiar de etapa.</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">Oportunidades</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Arrastra las tarjetas entre columnas para cambiar de etapa.</p>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="flex items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="openStageManager()"
+        >
+          <svg class="h-3.5 w-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M4 6h16M7 12h10M10 18h4"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span>Gestionar etapas</span>
+        </button>
+
+        <button
+          type="button"
+          class="flex items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+          (click)="openCreateForm()"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <span>Nueva oportunidad</span>
+        </button>
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
-      <button
-        type="button"
-        class="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
-        (click)="openStageManager()"
-      >
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M4 6h16M7 12h10M10 18h4"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-          />
-        </svg>
-        Gestionar etapas
-      </button>
-      <button
-        type="button"
-        class="flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
-        (click)="openCreateForm()"
-      >
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-        </svg>
-        Nueva oportunidad
-      </button>
-    </div>
-  </div>
+    <!-- Fila 2: Barra de Filtros Inline Dropdowns (HubSpot Style) -->
+    <div class="relative flex flex-wrap items-center gap-2 px-4 py-1.5 min-h-[38px] text-xs">
+      
+      <!-- Backdrop transparente para cerrar dropdowns al hacer click afuera -->
+      @if (activeDropdown()) {
+        <div class="fixed inset-0 z-20" (click)="closeDropdown()"></div>
+      }
 
-  <div class="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-white/[0.03]">
-    <div>
-      <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Vendedor</label>
-      <select
-        [value]="filterAdvisorId()"
-        (change)="filterAdvisorId.set($any($event.target).value); onFilterChange()"
-        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-      >
-        <option value="">Todos</option>
-        @for (advisor of advisors(); track advisor.id) {
-          <option [value]="advisor.id">{{ advisor.fullName }}</option>
+      <!-- Filtro 1: Vendedor Dropdown Ghost Button -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('advisor')"
+          class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors"
+          [class]="
+            filterAdvisorId()
+              ? 'bg-blue-50 text-blue-700 font-semibold dark:bg-blue-950/40 dark:text-blue-300'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white font-medium'
+          "
+        >
+          <span>Vendedor: <span class="font-normal text-gray-800 dark:text-gray-200">{{ selectedAdvisorName() }}</span></span>
+          
+          @if (filterAdvisorId()) {
+            <span
+              role="button"
+              (click)="clearFilterField('advisor', $event)"
+              class="ml-0.5 rounded p-0.5 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+              title="Quitar filtro de vendedor"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+          } @else {
+            <svg
+              class="h-3.5 w-3.5 text-gray-400 transition-transform duration-150"
+              [class.rotate-180]="activeDropdown() === 'advisor'"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          }
+        </button>
+
+        <!-- Popover Vendedor -->
+        @if (activeDropdown() === 'advisor') {
+          <div class="absolute left-0 top-full mt-1 z-30 w-56 rounded-md border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              Filtrar por vendedor
+            </div>
+            <div class="max-h-56 space-y-0.5 overflow-y-auto">
+              <button
+                type="button"
+                (click)="selectAdvisor('')"
+                class="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                [class.font-semibold]="!filterAdvisorId()"
+                [class.text-blue-600]="!filterAdvisorId()"
+              >
+                <span>Todos los vendedores</span>
+                @if (!filterAdvisorId()) {
+                  <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                }
+              </button>
+
+              @for (adv of advisors(); track adv.id) {
+                <button
+                  type="button"
+                  (click)="selectAdvisor(adv.id.toString())"
+                  class="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                  [class.font-semibold]="filterAdvisorId() === adv.id.toString()"
+                  [class.text-blue-600]="filterAdvisorId() === adv.id.toString()"
+                >
+                  <span class="truncate">{{ adv.fullName }}</span>
+                  @if (filterAdvisorId() === adv.id.toString()) {
+                    <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+          </div>
         }
-      </select>
+      </div>
+
+      <!-- Filtro 2: Fecha Desde Dropdown Ghost Button -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('from')"
+          class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors"
+          [class]="
+            filterFrom()
+              ? 'bg-blue-50 text-blue-700 font-semibold dark:bg-blue-950/40 dark:text-blue-300'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white font-medium'
+          "
+        >
+          <span>Desde: <span class="font-normal text-gray-800 dark:text-gray-200">{{ selectedFromLabel() }}</span></span>
+
+          @if (filterFrom()) {
+            <span
+              role="button"
+              (click)="clearFilterField('from', $event)"
+              class="ml-0.5 rounded p-0.5 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+              title="Quitar fecha desde"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+          } @else {
+            <svg
+              class="h-3.5 w-3.5 text-gray-400 transition-transform duration-150"
+              [class.rotate-180]="activeDropdown() === 'from'"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          }
+        </button>
+
+        <!-- Popover Fecha Desde -->
+        @if (activeDropdown() === 'from') {
+          <div class="absolute left-0 top-full mt-1 z-30 w-64 rounded-md border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              Fecha de inicio
+            </div>
+            
+            <input
+              type="date"
+              [value]="filterFrom()"
+              (change)="filterFrom.set($any($event.target).value); onFilterChange(); closeDropdown()"
+              class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+
+            <div class="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2 dark:border-gray-800">
+              <button
+                type="button"
+                (click)="clearFilterField('from'); closeDropdown()"
+                class="text-[11px] text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+              >
+                Borrar
+              </button>
+              <button
+                type="button"
+                (click)="closeDropdown()"
+                class="rounded bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Filtro 3: Fecha Hasta Dropdown Ghost Button -->
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('to')"
+          class="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors"
+          [class]="
+            filterTo()
+              ? 'bg-blue-50 text-blue-700 font-semibold dark:bg-blue-950/40 dark:text-blue-300'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white font-medium'
+          "
+        >
+          <span>Hasta: <span class="font-normal text-gray-800 dark:text-gray-200">{{ selectedToLabel() }}</span></span>
+
+          @if (filterTo()) {
+            <span
+              role="button"
+              (click)="clearFilterField('to', $event)"
+              class="ml-0.5 rounded p-0.5 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+              title="Quitar fecha hasta"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+          } @else {
+            <svg
+              class="h-3.5 w-3.5 text-gray-400 transition-transform duration-150"
+              [class.rotate-180]="activeDropdown() === 'to'"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          }
+        </button>
+
+        <!-- Popover Fecha Hasta -->
+        @if (activeDropdown() === 'to') {
+          <div class="absolute left-0 top-full mt-1 z-30 w-64 rounded-md border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+              Fecha de fin
+            </div>
+            
+            <input
+              type="date"
+              [value]="filterTo()"
+              (change)="filterTo.set($any($event.target).value); onFilterChange(); closeDropdown()"
+              class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+
+            <div class="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2 dark:border-gray-800">
+              <button
+                type="button"
+                (click)="clearFilterField('to'); closeDropdown()"
+                class="text-[11px] text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+              >
+                Borrar
+              </button>
+              <button
+                type="button"
+                (click)="closeDropdown()"
+                class="rounded bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-blue-700"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Botón Restablecer / Limpiar Filtros si hay alguno activo -->
+      @if (hasActiveFilters()) {
+        <button
+          type="button"
+          (click)="clearFilters()"
+          class="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+          title="Restablecer todos los filtros"
+        >
+          Limpiar filtros
+        </button>
+      }
+
+      <!-- Link "Más filtros" a la derecha con ml-auto -->
+      <div class="ml-auto relative">
+        <button
+          type="button"
+          (click)="toggleDropdown('more')"
+          class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/40"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Más filtros</span>
+        </button>
+
+        <!-- Popover Más filtros -->
+        @if (activeDropdown() === 'more') {
+          <div class="absolute right-0 top-full mt-1 z-30 w-72 rounded-md border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+            <div class="mb-2 flex items-center justify-between">
+              <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Filtros Rápidos
+              </span>
+              <button
+                type="button"
+                (click)="closeDropdown()"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Presets de Fecha -->
+            <div class="space-y-1 text-xs">
+              <p class="text-[11px] text-gray-400">Rango rápido de fechas:</p>
+              <div class="grid grid-cols-2 gap-1 pt-1">
+                <button
+                  type="button"
+                  (click)="selectDatePreset('today')"
+                  class="rounded border border-gray-200 px-2 py-1 text-left text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                >
+                  Hoy
+                </button>
+                <button
+                  type="button"
+                  (click)="selectDatePreset('yesterday')"
+                  class="rounded border border-gray-200 px-2 py-1 text-left text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                >
+                  Ayer
+                </button>
+                <button
+                  type="button"
+                  (click)="selectDatePreset('this_week')"
+                  class="rounded border border-gray-200 px-2 py-1 text-left text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                >
+                  Esta semana
+                </button>
+                <button
+                  type="button"
+                  (click)="selectDatePreset('this_month')"
+                  class="rounded border border-gray-200 px-2 py-1 text-left text-xs text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+                >
+                  Este mes
+                </button>
+              </div>
+            </div>
+
+            @if (hasActiveFilters()) {
+              <div class="mt-3 border-t border-gray-100 pt-2 dark:border-gray-800">
+                <button
+                  type="button"
+                  (click)="clearFilters()"
+                  class="w-full rounded bg-gray-100 py-1 text-center text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20"
+                >
+                  Restablecer todos los filtros
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
     </div>
-    <div>
-      <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Desde</label>
-      <input
-        type="date"
-        [value]="filterFrom()"
-        (change)="filterFrom.set($any($event.target).value); onFilterChange()"
-        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-      />
-    </div>
-    <div>
-      <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Hasta</label>
-      <input
-        type="date"
-        [value]="filterTo()"
-        (change)="filterTo.set($any($event.target).value); onFilterChange()"
-        class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-      />
-    </div>
-    @if (filterAdvisorId() || filterFrom() || filterTo()) {
-      <button
-        type="button"
-        class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
-        (click)="clearFilters()"
-      >
-        Limpiar filtros
-      </button>
-    }
   </div>
 
   @if (errorMessage()) {
-    <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+    <p class="rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ errorMessage() }}</p>
   }
 
   @if (isLoading()) {
-    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Cargando...</p>
   } @else {
     <div class="h-[75vh] min-h-0">
       <app-kanban-board
@@ -105,6 +396,7 @@
         (openCard)="openEditForm($event)"
         (moveStage)="onMoveStage($event)"
         (closeCard)="onRequestClose($event)"
+        (deleteCard)="onDeleteOpportunity($event)"
       />
     </div>
   }
@@ -123,21 +415,21 @@
 @if (closingOpportunity(); as closing) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="cancelClose()">
     <div
-      class="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+      class="w-full max-w-md overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
       (click)="$event.stopPropagation()"
     >
-      <div class="flex items-center justify-between gap-3 bg-brand-500 px-6 py-4">
-        <div class="flex items-center gap-3">
-          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-white">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div class="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </span>
-          <h2 class="text-base font-semibold text-white">Marcar como "{{ closingStage()?.name }}"</h2>
+          <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Marcar como "{{ closingStage()?.name }}"</h2>
         </div>
         <button
           type="button"
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+          class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
           (click)="cancelClose()"
           aria-label="Cerrar"
         >
@@ -147,20 +439,20 @@
         </button>
       </div>
 
-      <div class="p-6">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
+      <div class="p-5">
+      <p class="text-xs text-gray-500 dark:text-gray-400">
         {{ closing.customer.name }}
       </p>
 
       @if (closingStage()?.type === 'LOST') {
-        <div class="mt-4">
-          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo (opcional)</label>
+        <div class="mt-3">
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Motivo (opcional)</label>
           <textarea
             [value]="lossReason()"
             (input)="lossReason.set($any($event.target).value)"
             rows="3"
             placeholder="¿Por qué se perdió?"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           ></textarea>
         </div>
       }
@@ -168,7 +460,7 @@
       <div class="mt-4 flex justify-end gap-2">
         <button
           type="button"
-          class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+          class="rounded-md border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
           (click)="cancelClose()"
         >
           Cancelar
@@ -176,7 +468,7 @@
         <button
           type="button"
           [disabled]="isClosing()"
-          class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+          class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           (click)="confirmClose()"
         >
           {{ isClosing() ? 'Guardando...' : 'Confirmar' }}

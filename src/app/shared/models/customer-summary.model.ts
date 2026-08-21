@@ -3,4 +3,6 @@ export interface CustomerSummary {
   name: string;
   phone: string;
   blocked: boolean;
+  company?: string | null;
+  isNew?: boolean;
 }

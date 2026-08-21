@@ -52,4 +52,7 @@ export class OpportunityService {
     const request: CloseOpportunityRequest = { stageId, lossReason };
     return this.http.patch<Opportunity>(`${this.baseUrl}/${id}/close`, request);
   }
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

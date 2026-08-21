@@ -1,7 +1,7 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SweetAlertService } from '../../../../../core/services/sweet-alert.service';
 import { InitialsAvatar } from '../../../../../shared/components/initials-avatar/initials-avatar';
 import { Advisor } from '../../../../../shared/models/advisor.model';
@@ -13,7 +13,7 @@ const AGE_DANGER_DAYS = 7;
 
 @Component({
   selector: 'app-opportunity-card',
-  imports: [CurrencyPipe, DatePipe, InitialsAvatar],
+  imports: [CurrencyPipe, InitialsAvatar, RouterLink],
   templateUrl: './opportunity-card.html',
 })
 export class OpportunityCard {
@@ -26,6 +26,7 @@ export class OpportunityCard {
 
   readonly open = output<Opportunity>();
   readonly dragStart = output<Opportunity>();
+  readonly delete = output<Opportunity>();
 
   protected readonly isOpeningWhatsapp = signal(false);
 
@@ -47,12 +48,52 @@ export class OpportunityCard {
   protected readonly ageClass = computed(() => {
     const days = this.daysInStage();
     if (days >= AGE_DANGER_DAYS) {
-      return 'bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500';
+      return 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400';
     }
     if (days >= AGE_WARNING_DAYS) {
-      return 'bg-warning-50 text-warning-600 dark:bg-warning-500/20 dark:text-warning-500';
+      return 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400';
     }
     return 'bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400';
+  });
+
+  protected readonly lastActivityRelative = computed(() => {
+    const opp = this.opportunity();
+    const dateStr = opp.lastActivityAt || opp.updatedAt || opp.stageChangedAt || opp.createdAt;
+    if (!dateStr) {
+      return 'Sin actividad';
+    }
+
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / 60_000);
+    if (diffMins < 1) {
+      return 'hace un momento';
+    }
+    if (diffMins < 60) {
+      return `hace ${diffMins} min`;
+    }
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) {
+      const isToday = new Date(dateStr).toDateString() === new Date().toDateString();
+      return isToday ? 'hoy' : `hace ${diffHours} h`;
+    }
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) {
+      return 'hace 1d';
+    }
+    return `hace ${diffDays}d`;
+  });
+
+  protected readonly hasScheduledActivity = computed(() => {
+    const opp = this.opportunity();
+    if (opp.hasPendingActivity !== undefined) {
+      return opp.hasPendingActivity;
+    }
+    if (opp.nextActivityDate) {
+      return new Date(opp.nextActivityDate).getTime() > Date.now();
+    }
+    return false;
   });
 
   protected readonly weightedValue = computed(() => {
@@ -75,6 +116,16 @@ export class OpportunityCard {
     event.dataTransfer?.setData('text/plain', String(this.opportunity().id));
     event.dataTransfer!.effectAllowed = 'move';
     this.dragStart.emit(this.opportunity());
+  }
+
+  protected onCustomerClick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.router.navigate(['/crm/customers', this.opportunity().customer.id]);
+  }
+
+  protected onDeleteClick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.delete.emit(this.opportunity());
   }
 
   // Abre (o crea) el hilo de WhatsApp del cliente en el inbox unificado, en vez

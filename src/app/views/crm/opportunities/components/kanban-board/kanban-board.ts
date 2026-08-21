@@ -21,6 +21,7 @@ export class KanbanBoard {
   readonly openCard = output<Opportunity>();
   readonly moveStage = output<{ opportunity: Opportunity; stage: PipelineStage }>();
   readonly closeCard = output<{ opportunity: Opportunity; stage: PipelineStage }>();
+  readonly deleteCard = output<Opportunity>();
 
   protected readonly dragOverStageId = signal<number | null>(null);
   protected readonly isPanning = signal(false);

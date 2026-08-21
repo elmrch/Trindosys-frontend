@@ -1,5 +1,6 @@
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SweetAlertService } from '../../../core/services/sweet-alert.service';
 import { Advisor } from '../../../shared/models/advisor.model';
 import { AdvisorService } from '../../../shared/services/advisor.service';
 import { Customer } from '../customers/models/customer.model';
@@ -26,6 +27,7 @@ export class Opportunities implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly advisorService = inject(AdvisorService);
   private readonly socket = inject(OpportunityBoardSocketService);
+  private readonly sweetAlert = inject(SweetAlertService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly opportunities = signal<Opportunity[]>([]);
@@ -47,6 +49,44 @@ export class Opportunities implements OnInit {
   protected readonly filterAdvisorId = signal<string>('');
   protected readonly filterFrom = signal<string>('');
   protected readonly filterTo = signal<string>('');
+  protected readonly activeDropdown = signal<'advisor' | 'from' | 'to' | 'more' | null>(null);
+
+  protected readonly selectedAdvisorName = computed(() => {
+    const id = this.filterAdvisorId();
+    if (!id) {
+      return 'Todos';
+    }
+    const advisor = this.advisors().find((a) => String(a.id) === id);
+    return advisor ? advisor.fullName : `Asesor #${id}`;
+  });
+
+  protected readonly selectedFromLabel = computed(() => {
+    const from = this.filterFrom();
+    if (!from) {
+      return 'Cualquier fecha';
+    }
+    const parts = from.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return from;
+  });
+
+  protected readonly selectedToLabel = computed(() => {
+    const to = this.filterTo();
+    if (!to) {
+      return 'Cualquier fecha';
+    }
+    const parts = to.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return to;
+  });
+
+  protected readonly hasActiveFilters = computed(() => {
+    return !!(this.filterAdvisorId() || this.filterFrom() || this.filterTo());
+  });
 
   ngOnInit(): void {
     this.loadStages();
@@ -57,6 +97,73 @@ export class Opportunities implements OnInit {
     this.socket.connect();
     this.socket.events$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => this.onBoardEvent(event));
     this.destroyRef.onDestroy(() => this.socket.disconnect());
+  }
+
+  protected toggleDropdown(name: 'advisor' | 'from' | 'to' | 'more'): void {
+    this.activeDropdown.update((current) => (current === name ? null : name));
+  }
+
+  protected closeDropdown(): void {
+    this.activeDropdown.set(null);
+  }
+
+  protected selectAdvisor(advisorId: string): void {
+    this.filterAdvisorId.set(advisorId);
+    this.closeDropdown();
+    this.onFilterChange();
+  }
+
+  protected clearFilterField(field: 'advisor' | 'from' | 'to', event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (field === 'advisor') {
+      this.filterAdvisorId.set('');
+    } else if (field === 'from') {
+      this.filterFrom.set('');
+    } else if (field === 'to') {
+      this.filterTo.set('');
+    }
+    this.onFilterChange();
+  }
+
+  protected selectDatePreset(preset: 'today' | 'yesterday' | 'this_week' | 'this_month' | 'all'): void {
+    const now = new Date();
+    const formatDate = (d: Date) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    if (preset === 'all') {
+      this.filterFrom.set('');
+      this.filterTo.set('');
+    } else if (preset === 'today') {
+      const todayStr = formatDate(now);
+      this.filterFrom.set(todayStr);
+      this.filterTo.set(todayStr);
+    } else if (preset === 'yesterday') {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      const yestStr = formatDate(yesterday);
+      this.filterFrom.set(yestStr);
+      this.filterTo.set(yestStr);
+    } else if (preset === 'this_week') {
+      const firstDay = new Date(now);
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      firstDay.setDate(diff);
+      this.filterFrom.set(formatDate(firstDay));
+      this.filterTo.set(formatDate(now));
+    } else if (preset === 'this_month') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      this.filterFrom.set(formatDate(firstDay));
+      this.filterTo.set(formatDate(now));
+    }
+
+    this.closeDropdown();
+    this.onFilterChange();
   }
 
   protected loadStages(): void {
@@ -94,6 +201,7 @@ export class Opportunities implements OnInit {
     this.filterAdvisorId.set('');
     this.filterFrom.set('');
     this.filterTo.set('');
+    this.closeDropdown();
     this.loadOpportunities();
   }
 
@@ -141,6 +249,25 @@ export class Opportunities implements OnInit {
     this.closingOpportunity.set(payload.opportunity);
     this.closingStage.set(payload.stage);
     this.lossReason.set('');
+  }
+
+  protected async onDeleteOpportunity(opportunity: Opportunity): Promise<void> {
+    const result = await this.sweetAlert.confirm(
+      '¿Eliminar oportunidad?',
+      `Se eliminará la oportunidad de "${opportunity.customer.name}". Esta acción no se puede deshacer.`,
+      'Sí, eliminar',
+    );
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    this.opportunityService.delete(opportunity.id).subscribe({
+      next: () => {
+        this.opportunities.update((list) => list.filter((o) => o.id !== opportunity.id));
+        this.sweetAlert.toast('Oportunidad eliminada');
+      },
+      error: () => this.errorMessage.set('No se pudo eliminar la oportunidad.'),
+    });
   }
 
   protected cancelClose(): void {

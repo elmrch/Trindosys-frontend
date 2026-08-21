@@ -1,20 +1,20 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4" (click)="close.emit()">
   <div
-    class="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
+    class="w-full max-w-lg overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
     (click)="$event.stopPropagation()"
   >
-    <div class="flex items-center justify-between gap-3 bg-brand-500 px-6 py-4">
-      <div class="flex items-center gap-3">
-        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/20 text-white">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div class="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+          <svg class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
           </svg>
         </span>
-        <h2 class="text-base font-semibold text-white">Etapas del pipeline</h2>
+        <h2 class="text-sm font-semibold text-gray-900 dark:text-white">Etapas del pipeline</h2>
       </div>
       <button
         type="button"
-        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+        class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-200"
         (click)="close.emit()"
         aria-label="Cerrar"
       >
@@ -24,30 +24,30 @@
       </button>
     </div>
 
-    <div class="p-6">
+    <div class="p-5">
     @if (errorMessage()) {
-      <p class="mt-3 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+      <p class="rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ errorMessage() }}</p>
     }
 
     @if (isLoading()) {
-      <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400">Cargando...</p>
     } @else {
-      <ul class="mt-4 max-h-64 space-y-1 overflow-y-auto">
+      <ul class="max-h-64 space-y-1.5 overflow-y-auto">
         @for (stage of stages(); track stage.id) {
           <li
-            class="flex items-center justify-between gap-2 rounded-lg border border-gray-100 px-3 py-2 dark:border-gray-800"
+            class="flex items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2 dark:border-gray-800"
           >
             <div class="min-w-0">
               <div class="flex items-center gap-1.5">
                 <span
-                  class="h-2.5 w-2.5 shrink-0 rounded-full border border-black/5"
+                  class="h-2 w-2 shrink-0 rounded-full"
                   [style.background-color]="stage.color || '#9CA3AF'"
                 ></span>
                 <span class="text-xs text-gray-400">#{{ stage.position }}</span>
-                <p class="truncate text-sm font-medium text-gray-800 dark:text-white">{{ stage.name }}</p>
+                <p class="truncate text-xs font-medium text-gray-800 dark:text-white">{{ stage.name }}</p>
                 @if (stage.initial) {
                   <span
-                    class="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
+                    class="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
                   >
                     Inicial
                   </span>
@@ -57,9 +57,9 @@
                 class="text-[11px] font-medium"
                 [class]="
                   stage.type === 'WON'
-                    ? 'text-success-600 dark:text-success-500'
+                    ? 'text-emerald-600 dark:text-emerald-400'
                     : stage.type === 'LOST'
-                      ? 'text-error-600 dark:text-error-500'
+                      ? 'text-red-600 dark:text-red-400'
                       : 'text-gray-400'
                 "
               >
@@ -73,11 +73,11 @@
             <div class="flex shrink-0 items-center gap-1">
               <button
                 type="button"
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
+                class="rounded-md border border-gray-200 p-1.5 text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-600 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
                 title="Editar"
                 (click)="openEditForm(stage)"
               >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M7 7h-1a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                   <path
                     d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97l-8.415 8.385v3h3l8.385-8.415Z"
@@ -91,11 +91,11 @@
               </button>
               <button
                 type="button"
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                class="rounded-md border border-gray-200 p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                 title="Eliminar"
                 (click)="deleteStage(stage)"
               >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                   <path d="M10 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
                   <path d="M14 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
@@ -112,23 +112,23 @@
             </div>
           </li>
         } @empty {
-          <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">No hay etapas todavía.</p>
+          <p class="py-6 text-center text-xs text-gray-500 dark:text-gray-400">No hay etapas todavía.</p>
         }
       </ul>
     }
 
     @if (isFormOpen()) {
-      <form class="mt-4 space-y-3 border-t border-gray-100 pt-4 dark:border-gray-800" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <form class="mt-4 space-y-3 border-t border-gray-100 pt-3 dark:border-gray-800" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
           {{ editingStage() ? 'Editar etapa' : 'Nueva etapa' }}
         </p>
 
         <div>
-          <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Nombre</label>
+          <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Nombre</label>
           <input
             type="text"
             formControlName="name"
-            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           />
           @if (form.controls.name.invalid && form.controls.name.touched) {
             <p class="mt-1 text-xs font-medium text-red-600">El nombre es obligatorio.</p>
@@ -137,18 +137,18 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Posición (opcional)</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Posición (opcional)</label>
             <input
               type="number"
               formControlName="position"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
           </div>
           <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Tipo</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Tipo</label>
             <select
               formControlName="type"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             >
               <option value="OPEN">Abierta</option>
               <option value="WON">Ganada</option>
@@ -159,41 +159,41 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Color</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Color</label>
             <div class="flex items-center gap-2">
               <input
                 type="color"
                 formControlName="color"
-                class="h-9 w-11 shrink-0 cursor-pointer rounded-lg border border-gray-300 bg-white p-1 dark:border-gray-700 dark:bg-gray-800"
+                class="h-8 w-10 shrink-0 cursor-pointer rounded-md border border-gray-300 bg-white p-0.5 dark:border-gray-700 dark:bg-gray-800"
               />
               <input
                 type="text"
                 formControlName="color"
-                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
           </div>
           <div>
-            <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Probabilidad (%)</label>
+            <label class="mb-1 block text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Probabilidad (%)</label>
             <input
               type="number"
               min="0"
               max="100"
               formControlName="probability"
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
             />
           </div>
         </div>
 
         <label class="flex items-center gap-2">
-          <input type="checkbox" formControlName="initial" class="h-4 w-4 rounded border-gray-300 accent-brand-500" />
-          <span class="text-sm text-gray-700 dark:text-gray-300">Etapa inicial (donde entran las oportunidades nuevas)</span>
+          <input type="checkbox" formControlName="initial" class="h-4 w-4 rounded border-gray-300 accent-blue-600" />
+          <span class="text-xs text-gray-700 dark:text-gray-300">Etapa inicial (donde entran las oportunidades nuevas)</span>
         </label>
 
         <div class="flex justify-end gap-2 pt-1">
           <button
             type="button"
-            class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+            class="rounded-md border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
             (click)="cancelForm()"
           >
             Cancelar
@@ -201,7 +201,7 @@
           <button
             type="submit"
             [disabled]="isSubmitting()"
-            class="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+            class="rounded-md bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {{ isSubmitting() ? 'Guardando...' : 'Guardar' }}
           </button>
@@ -210,13 +210,13 @@
     } @else {
       <button
         type="button"
-        class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+        class="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-gray-300 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
         (click)="openCreateForm()"
       >
         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
         </svg>
-        Nueva etapa
+        <span>Nueva etapa</span>
       </button>
     }
     </div>

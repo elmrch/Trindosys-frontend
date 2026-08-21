@@ -17,6 +17,9 @@ export interface Opportunity {
   stageChangedAt: string;
   activityCount: number;
   advisorName?: string | null;
+  lastActivityAt?: string | null;
+  nextActivityDate?: string | null;
+  hasPendingActivity?: boolean;
 }
 
 export interface OpportunityRequest {
