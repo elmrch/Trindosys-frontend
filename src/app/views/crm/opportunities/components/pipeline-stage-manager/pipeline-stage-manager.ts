@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, output, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, effect, inject, output, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SweetAlertService } from '../../../../../core/services/sweet-alert.service';
 import { PipelineStage, PipelineStageRequest, StageType } from '../../models/pipeline-stage.model';
@@ -14,6 +14,9 @@ export class PipelineStageManager implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly pipelineStageService = inject(PipelineStageService);
   private readonly sweetAlert = inject(SweetAlertService);
+
+  private readonly stageForm = viewChild<ElementRef<HTMLFormElement>>('stageForm');
+  private readonly nameInput = viewChild<ElementRef<HTMLInputElement>>('nameInput');
 
   readonly close = output<void>();
   readonly changed = output<void>();
@@ -37,6 +40,22 @@ export class PipelineStageManager implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+
+  constructor() {
+    effect(() => {
+      if (!this.isFormOpen()) {
+        return;
+      }
+      const formEl = this.stageForm();
+      const nameEl = this.nameInput();
+      if (!formEl || !nameEl) {
+        return;
+      }
+      formEl.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      nameEl.nativeElement.focus({ preventScroll: true });
+    });
   }
 
   protected load(): void {
