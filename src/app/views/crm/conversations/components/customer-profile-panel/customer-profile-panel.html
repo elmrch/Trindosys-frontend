@@ -14,10 +14,10 @@
             <p class="truncate text-sm font-medium text-gray-900 dark:text-white">{{ customer.email }}</p>
           </div>
         }
-        @if (customer.company) {
+        @if (customer.companyName) {
           <div>
             <span class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Empresa</span>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.company }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ customer.companyName }}</p>
           </div>
         }
       </div>

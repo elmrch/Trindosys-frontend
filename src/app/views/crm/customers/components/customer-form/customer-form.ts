@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Company } from '../../../companies/models/company.model';
 import { Customer, CustomerRequest } from '../../models/customer.model';
 import { CustomerService } from '../../services/customer.service';
 import { Advisor } from '../../../../../shared/models/advisor.model';
@@ -10,7 +11,7 @@ import { Advisor } from '../../../../../shared/models/advisor.model';
   imports: [ReactiveFormsModule],
   templateUrl: './customer-form.html',
 })
-export class CustomerForm {
+export class CustomerForm implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly customerService = inject(CustomerService);
 
@@ -23,11 +24,13 @@ export class CustomerForm {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isEditMode = computed(() => this.customer() !== null);
 
+  protected readonly companies = signal<Company[]>([]);
+
   protected readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     email: [''],
     phone: [''],
-    company: [''],
+    companyId: [null as number | null],
     sourceCampaign: [''],
     advisorId: [null as number | null],
     notes: [''],
@@ -41,7 +44,7 @@ export class CustomerForm {
           name: existing.name,
           email: existing.email ?? '',
           phone: existing.phone ?? '',
-          company: existing.company ?? '',
+          companyId: existing.companyId,
           sourceCampaign: existing.sourceCampaign ?? '',
           advisorId: existing.advisorId,
           notes: existing.notes ?? '',
@@ -51,12 +54,19 @@ export class CustomerForm {
           name: '',
           email: '',
           phone: '',
-          company: '',
+          companyId: null,
           sourceCampaign: '',
           advisorId: null,
           notes: '',
         });
       }
+    });
+  }
+
+  ngOnInit(): void {
+    this.customerService.listCompanies().subscribe({
+      next: (result) => this.companies.set(result.content),
+      error: () => {},
     });
   }
 
@@ -71,7 +81,7 @@ export class CustomerForm {
       name: raw.name,
       email: raw.email || null,
       phone: raw.phone || null,
-      company: raw.company || null,
+      companyId: raw.companyId,
       sourceCampaign: raw.sourceCampaign || null,
       notes: raw.notes || null,
       advisorId: raw.advisorId,

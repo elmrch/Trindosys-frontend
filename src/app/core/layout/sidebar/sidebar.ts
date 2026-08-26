@@ -25,6 +25,10 @@ const SVG_CLOSE = '</svg>';
 const ICON_BY_STATE: Record<string, string> = {
   '/dashboard':
     '<path d="M3 12.5 12 4l9 8.5M5 10.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  '/crm/calendar':
+    '<rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  '/crm/companies':
+    '<rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/>',
   '/crm/customers':
     '<path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M11 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19.5 19v-1a3 3 0 0 0-2.5-2.96M15 4.13a3 3 0 0 1 0 5.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
   '/crm/opportunities': '<path d="M4 19V9m6 10V5m6 14v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',

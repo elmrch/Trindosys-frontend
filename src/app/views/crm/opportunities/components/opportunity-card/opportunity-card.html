@@ -15,9 +15,9 @@
       >
         {{ opportunity().customer.name }}
       </a>
-      @if (opportunity().customer.company) {
+      @if (opportunity().customer.companyName) {
         <p class="truncate text-[11px] text-gray-500 dark:text-gray-400">
-          {{ opportunity().customer.company }}
+          {{ opportunity().customer.companyName }}
         </p>
       }
     </div>

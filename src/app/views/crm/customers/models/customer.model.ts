@@ -3,7 +3,8 @@ export interface Customer {
   name: string;
   email: string | null;
   phone: string | null;
-  company: string | null;
+  companyId: number | null;
+  companyName: string | null;
   status: string;
   sourceCampaign: string | null;
   notes: string | null;
@@ -21,7 +22,7 @@ export interface CustomerRequest {
   name: string;
   email: string | null;
   phone: string | null;
-  company: string | null;
+  companyId: number | null;
   sourceCampaign: string | null;
   notes: string | null;
   advisorId: number | null;

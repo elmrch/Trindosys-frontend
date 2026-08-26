@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { Company } from '../../companies/models/company.model';
 import { Opportunity } from '../../opportunities/models/opportunity.model';
 import { Page } from '../../../../shared/models/page.model';
 import { Customer, CustomerRequest, UpdateCustomerTagsRequest } from '../models/customer.model';
@@ -10,6 +11,7 @@ import { Customer, CustomerRequest, UpdateCustomerTagsRequest } from '../models/
 export class CustomerService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/crm/customers`;
+  private readonly companiesUrl = `${environment.apiUrl}/crm/companies`;
 
   list(page: number, size: number, sort?: string, status?: string): Observable<Page<Customer>> {
     let params = new HttpParams().set('page', page).set('size', size);
@@ -45,5 +47,9 @@ export class CustomerService {
 
   getOpportunities(id: number): Observable<Opportunity[]> {
     return this.http.get<Opportunity[]>(`${this.baseUrl}/${id}/opportunities`);
+  }
+
+  listCompanies(): Observable<Page<Company>> {
+    return this.http.get<Page<Company>>(this.companiesUrl, { params: new HttpParams().set('page', '0').set('size', '100') });
   }
 }

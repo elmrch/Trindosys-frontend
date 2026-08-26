@@ -5,7 +5,7 @@ import { InitialsAvatar } from '../../../../../shared/components/initials-avatar
 import { Advisor } from '../../../../../shared/models/advisor.model';
 import { Customer } from '../../models/customer.model';
 
-export type CustomerSortColumn = 'name' | 'company' | 'status' | 'createdAt';
+export type CustomerSortColumn = 'name' | 'companyName' | 'status' | 'createdAt';
 
 @Component({
   selector: 'app-customer-list',

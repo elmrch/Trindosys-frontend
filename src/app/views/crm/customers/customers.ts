@@ -120,7 +120,7 @@ export class Customers implements OnInit {
         c.name.toLowerCase().includes(term) ||
         (c.email ?? '').toLowerCase().includes(term) ||
         (c.phone ?? '').toLowerCase().includes(term) ||
-        (c.company ?? '').toLowerCase().includes(term) ||
+        (c.companyName ?? '').toLowerCase().includes(term) ||
         (c.notes ?? '').toLowerCase().includes(term) ||
         (c.tags ?? []).some((t) => t.toLowerCase().includes(term)),
       );
@@ -268,7 +268,7 @@ export class Customers implements OnInit {
       `"${(c.name || '').replace(/"/g, '""')}"`,
       `"${(c.email || '').replace(/"/g, '""')}"`,
       `"${(c.phone || '').replace(/"/g, '""')}"`,
-      `"${(c.company || '').replace(/"/g, '""')}"`,
+      `"${(c.companyName || '').replace(/"/g, '""')}"`,
       `"${(this.getAdvisorName(c)).replace(/"/g, '""')}"`,
       `"${(c.status || '').replace(/"/g, '""')}"`,
       `"${c.createdAt || ''}"`,

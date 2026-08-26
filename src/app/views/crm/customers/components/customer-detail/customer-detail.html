@@ -83,7 +83,7 @@
               </div>
 
               <p class="truncate text-xs text-gray-500 dark:text-gray-400">
-                {{ customer.company || 'Sin empresa' }}
+                {{ customer.companyName || 'Sin empresa' }}
               </p>
 
               <div class="mt-1.5 flex items-center gap-1.5">
@@ -229,7 +229,7 @@
             <!-- Empresa -->
             <div>
               <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">EMPRESA</span>
-              <p class="mt-0.5 text-sm font-medium text-gray-900 dark:text-white">{{ customer.company || '—' }}</p>
+              <p class="mt-0.5 text-sm font-medium text-gray-900 dark:text-white">{{ customer.companyName || '—' }}</p>
             </div>
 
             <!-- Asesor Asignado / Propietario -->
@@ -563,10 +563,10 @@
 
           @if (isSectionOpen('company')) {
             <div class="px-3.5 pb-3.5 text-xs space-y-2">
-              @if (customer.company) {
+              @if (customer.companyName) {
                 <div>
                   <span class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">NOMBRE DE LA EMPRESA</span>
-                  <p class="mt-0.5 text-sm font-medium text-gray-900 dark:text-white">{{ customer.company }}</p>
+                  <p class="mt-0.5 text-sm font-medium text-gray-900 dark:text-white">{{ customer.companyName }}</p>
                 </div>
               } @else {
                 <p class="text-xs text-gray-400">No tiene empresa registrada.</p>
