@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { ImportResult } from '../../../../shared/models/import.model';
 import { Company } from '../../companies/models/company.model';
 import { Opportunity } from '../../opportunities/models/opportunity.model';
 import { Page } from '../../../../shared/models/page.model';
@@ -51,5 +52,17 @@ export class CustomerService {
 
   listCompanies(): Observable<Page<Company>> {
     return this.http.get<Page<Company>>(this.companiesUrl, { params: new HttpParams().set('page', '0').set('size', '100') });
+  }
+
+  downloadTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/import/template`, {
+      responseType: 'blob',
+    });
+  }
+
+  importFromExcel(file: File): Observable<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImportResult>(`${this.baseUrl}/import`, formData);
   }
 }

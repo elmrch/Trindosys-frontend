@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Channel, ChannelConnectionRequest, ChannelConnectionWithChannel } from '../../models/channel.model';
+import { Channel, ChannelConnectionRequest, ChannelConnectionWithChannel, ChannelProvider } from '../../models/channel.model';
 import { ChannelService } from '../../services/channel.service';
 
 @Component({
@@ -15,6 +15,8 @@ export class ConnectionForm {
 
   readonly channels = input.required<Channel[]>();
   readonly connection = input<ChannelConnectionWithChannel | null>(null);
+  readonly preselectedChannelId = input<number | null>(null);
+  readonly preselectedProvider = input<ChannelProvider | null>(null);
 
   readonly saved = output<void>();
   readonly cancel = output<void>();
@@ -26,26 +28,60 @@ export class ConnectionForm {
   protected readonly form = this.fb.nonNullable.group({
     channelId: [0, [Validators.required, Validators.min(1)]],
     name: ['', Validators.required],
-    externalId: ['', Validators.required],
+    provider: ['evolution-api' as ChannelProvider, Validators.required],
+    externalId: [''],
     token: ['', Validators.required],
     webhookUrl: [''],
     active: [true],
   });
 
+  protected readonly isEvolutionApi = computed(() => this.form.controls.provider.value === 'evolution-api');
+  protected readonly isMetaCloudApi = computed(() => this.form.controls.provider.value === 'meta-cloud-api');
+
   constructor() {
     effect(() => {
       const existing = this.connection();
+      const preChannelId = this.preselectedChannelId();
+      const preProvider = this.preselectedProvider();
+
       if (existing) {
         this.form.patchValue({
           channelId: existing.channelId,
           name: existing.name,
+          provider: existing.provider ?? 'meta-cloud-api',
           externalId: existing.externalId,
           token: '',
           webhookUrl: existing.webhookUrl ?? '',
           active: existing.active,
         });
+        this.form.controls.externalId.disable();
+        this.form.controls.webhookUrl.disable();
       } else {
-        this.form.reset({ channelId: 0, name: '', externalId: '', token: '', webhookUrl: '', active: true });
+        const provider = preProvider ?? 'evolution-api';
+        this.form.reset({
+          channelId: preChannelId ?? 0,
+          name: '',
+          provider,
+          externalId: '',
+          token: '',
+          webhookUrl: provider === 'evolution-api' ? `${window.location.origin}/api/webhooks/evolution-api` : '',
+          active: true,
+        });
+
+        if (provider === 'evolution-api') {
+          this.form.controls.externalId.disable();
+        }
+      }
+    });
+
+    this.form.controls.provider.valueChanges.subscribe((provider) => {
+      if (provider === 'evolution-api') {
+        this.form.controls.externalId.disable();
+        this.form.controls.externalId.setValue('');
+        this.form.controls.webhookUrl.setValue(`${window.location.origin}/api/webhooks/evolution-api`);
+      } else {
+        this.form.controls.externalId.enable();
+        this.form.controls.webhookUrl.setValue('');
       }
     });
   }
@@ -60,9 +96,10 @@ export class ConnectionForm {
     const request: ChannelConnectionRequest = {
       channelId: raw.channelId,
       name: raw.name,
-      externalId: raw.externalId,
+      provider: raw.provider,
+      externalId: raw.externalId || '',
       token: raw.token,
-      webhookUrl: raw.webhookUrl || null,
+      webhookUrl: raw.webhookUrl || undefined,
       active: raw.active,
     };
 

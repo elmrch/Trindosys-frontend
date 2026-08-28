@@ -27,88 +27,169 @@
     </div>
 
     <div class="p-6">
-    <form class="space-y-4" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      @if (errorMessage()) {
-        <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
-      }
-
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Canal</label>
-        <select
-          formControlName="channelId"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-        >
-          <option [ngValue]="0" disabled>Selecciona un canal</option>
-          @for (channel of channels(); track channel.id) {
-            <option [ngValue]="channel.id">{{ channel.name }}</option>
-          }
-        </select>
-      </div>
-
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
-        <input
-          type="text"
-          formControlName="name"
-          placeholder="Ej. WhatsApp Ventas"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-        />
-      </div>
-
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">External ID</label>
-        <input
-          type="text"
-          formControlName="externalId"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-        />
-      </div>
-
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Token</label>
-        <input
-          type="text"
-          formControlName="token"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-        />
-        @if (connection(); as existing) {
-          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-            Token actual: {{ existing.maskedToken }} — ingrésalo de nuevo para actualizarlo.
-          </p>
+      <form class="space-y-4" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        @if (errorMessage()) {
+          <p class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
         }
-      </div>
 
-      <div>
-        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL (opcional)</label>
-        <input
-          type="text"
-          formControlName="webhookUrl"
-          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-        />
-      </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Canal</label>
+          <select
+            formControlName="channelId"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          >
+            <option [ngValue]="0" disabled>Selecciona un canal</option>
+            @for (channel of channels(); track channel.id) {
+              <option [ngValue]="channel.id">{{ channel.name }}</option>
+            }
+          </select>
+        </div>
 
-      <label class="flex items-center gap-2">
-        <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-gray-300 accent-brand-500" />
-        <span class="text-sm text-gray-700 dark:text-gray-300">Conexión activa</span>
-      </label>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="Ej. WhatsApp Ventas"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+        </div>
 
-      <div class="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
-          (click)="cancel.emit()"
-        >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          [disabled]="isSubmitting()"
-          class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {{ isSubmitting() ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </div>
-    </form>
+        <div>
+          <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Proveedor</label>
+          <div class="flex gap-3">
+            <label
+              class="flex flex-1 cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+              [class]="
+                isEvolutionApi()
+                  ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10'
+                  : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-white/5'
+              "
+            >
+              <input type="radio" formControlName="provider" value="evolution-api" class="sr-only" />
+              <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                [class]="
+                  isEvolutionApi()
+                    ? 'bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400'
+                    : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
+                "
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l5-7v4h3l-5 7z" fill="currentColor" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Evolution API (QR)</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Vincula por código QR, sin aprobación de Meta</p>
+              </div>
+            </label>
+            <label
+              class="flex flex-1 cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+              [class]="
+                isMetaCloudApi()
+                  ? 'border-brand-500 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10'
+                  : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-white/5'
+              "
+            >
+              <input type="radio" formControlName="provider" value="meta-cloud-api" class="sr-only" />
+              <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                [class]="
+                  isMetaCloudApi()
+                    ? 'bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400'
+                    : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
+                "
+              >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l5-7v4h3l-5 7z" fill="currentColor" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Meta Cloud API</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Requiere credenciales de Meta Business</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        @if (isMetaCloudApi()) {
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number ID</label>
+            <input
+              type="text"
+              formControlName="externalId"
+              placeholder="Ej. 1234567890"
+              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+          </div>
+        }
+
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ isEvolutionApi() ? 'API Key' : 'Access Token' }}
+          </label>
+          <input
+            type="password"
+            formControlName="token"
+            [placeholder]="isEvolutionApi() ? 'API Key de Evolution API' : 'Access Token de Meta'"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+          />
+          @if (connection(); as existing) {
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              Token actual: {{ existing.maskedToken }} — ingrésalo de nuevo para actualizarlo.
+            </p>
+          }
+        </div>
+
+        @if (isMetaCloudApi()) {
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL (opcional)</label>
+            <input
+              type="text"
+              formControlName="webhookUrl"
+              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            />
+          </div>
+        }
+
+        @if (isEvolutionApi()) {
+          <div>
+            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook URL</label>
+            <input
+              type="text"
+              formControlName="webhookUrl"
+              readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400"
+            />
+            <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+              Se configura automáticamente. El backend usa esta URL para recibir mensajes.
+            </p>
+          </div>
+        }
+
+        <label class="flex items-center gap-2">
+          <input type="checkbox" formControlName="active" class="h-4 w-4 rounded border-gray-300 accent-brand-500" />
+          <span class="text-sm text-gray-700 dark:text-gray-300">Conexión activa</span>
+        </label>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+            (click)="cancel.emit()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="isSubmitting()"
+            class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {{ isSubmitting() ? 'Guardando...' : 'Crear' }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

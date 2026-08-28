@@ -1,5 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AuthService } from '../../../core/auth/auth.service';
 import { SweetAlertService } from '../../../core/services/sweet-alert.service';
+import { ImportModal } from '../../../shared/components/import-modal/import-modal';
 import { CustomerForm } from './components/customer-form/customer-form';
 import { CustomerList, CustomerSortColumn } from './components/customer-list/customer-list';
 import { Customer } from './models/customer.model';
@@ -10,13 +12,14 @@ import { Advisor } from '../../../shared/models/advisor.model';
 
 @Component({
   selector: 'app-customers',
-  imports: [CustomerList, CustomerForm],
+  imports: [CustomerList, CustomerForm, ImportModal],
   templateUrl: './customers.html',
 })
 export class Customers implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly sweetAlert = inject(SweetAlertService);
   private readonly advisorService = inject(AdvisorService);
+  private readonly authService = inject(AuthService);
 
   protected readonly advisors = signal<Advisor[]>([]);
   protected readonly customers = signal<Customer[]>([]);
@@ -45,6 +48,9 @@ export class Customers implements OnInit {
   protected readonly filterActivityPreset = signal<string>('');
   protected readonly filterStatus = signal<string>('');
   protected readonly filterTag = signal<string>('');
+
+  protected readonly isImportOpen = signal(false);
+  protected readonly isAdmin = computed(() => this.authService.currentUser()?.role === 'ADMIN');
 
   protected readonly availableTags = computed(() => {
     const set = new Set<string>();
@@ -286,6 +292,45 @@ export class Customers implements OnInit {
     document.body.removeChild(link);
     this.sweetAlert.toast('Contactos exportados correctamente.');
   }
+
+  protected openImport(): void {
+    this.isImportOpen.set(true);
+  }
+
+  protected closeImport(): void {
+    this.isImportOpen.set(false);
+  }
+
+  protected onDownloadCustomerTemplate(): void {
+    this.customerService.downloadTemplate().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plantilla-contactos.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => this.sweetAlert.error('No se pudo descargar la plantilla.'),
+    });
+  }
+
+  protected onImportFile(file: File): void {
+    this.customerService.importFromExcel(file).subscribe({
+      next: (result) => {
+        this.importModalRef()?.handleSuccess(result);
+        if (result.errorCount === 0) {
+          this.sweetAlert.toast(`${result.successCount} contactos importados correctamente.`);
+          this.load();
+        }
+      },
+      error: () => {
+        this.importModalRef()?.handleError('No se pudo importar el archivo. Verifica que sea un .xlsx válido.');
+      },
+    });
+  }
+
+  protected importModalRef = signal<ImportModal | null>(null);
 
   ngOnInit(): void {
     this.load();

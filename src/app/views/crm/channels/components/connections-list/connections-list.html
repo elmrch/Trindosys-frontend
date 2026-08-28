@@ -4,23 +4,23 @@
       <tr class="border-b border-gray-200 dark:border-gray-700">
         <th
           class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
-          (click)="onSort('channel')"
-        >
-          <span class="flex items-center gap-1">
-            Canal
-            <span [class]="sortColumn() === 'channel' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
-              sortIcon('channel')
-            }}</span>
-          </span>
-        </th>
-        <th
-          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
           (click)="onSort('name')"
         >
           <span class="flex items-center gap-1">
             Nombre
             <span [class]="sortColumn() === 'name' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
               sortIcon('name')
+            }}</span>
+          </span>
+        </th>
+        <th
+          class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+          (click)="onSort('provider')"
+        >
+          <span class="flex items-center gap-1">
+            Proveedor
+            <span [class]="sortColumn() === 'provider' ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'">{{
+              sortIcon('provider')
             }}</span>
           </span>
         </th>
@@ -35,7 +35,6 @@
             }}</span>
           </span>
         </th>
-        <th class="whitespace-nowrap px-5 py-3 font-medium text-gray-600 dark:text-gray-300">Token</th>
         <th
           class="cursor-pointer select-none whitespace-nowrap px-5 py-3 font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
           (click)="onSort('active')"
@@ -64,10 +63,22 @@
     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
       @for (connection of sortedConnections(); track connection.id) {
         <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-white/5">
-          <td class="px-5 py-3 text-gray-700 dark:text-gray-200">{{ connection.channelName }}</td>
           <td class="px-5 py-3 font-medium text-gray-700 dark:text-gray-200">{{ connection.name }}</td>
-          <td class="px-5 py-3 text-gray-500 dark:text-gray-400">{{ connection.externalId }}</td>
-          <td class="px-5 py-3 font-mono text-gray-500 dark:text-gray-400">{{ connection.maskedToken }}</td>
+          <td class="px-5 py-3">
+            <span
+              class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+              [class]="
+                isEvolutionApi(connection)
+                  ? 'bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400'
+                  : 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400'
+              "
+            >
+              {{ providerLabel(connection.provider) }}
+            </span>
+          </td>
+          <td class="px-5 py-3 text-gray-500 dark:text-gray-400">
+            {{ connection.externalId || '—' }}
+          </td>
           <td class="px-5 py-3">
             <span
               class="rounded-full px-2.5 py-0.5 text-xs font-medium"
@@ -85,50 +96,80 @@
           </td>
           <td class="px-5 py-3 text-right">
             <div class="flex items-center justify-end gap-1">
-              <button
-                type="button"
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
-                title="Editar"
-                (click)="edit.emit(connection)"
-              >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 7h-1a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                  <path
-                    d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97l-8.415 8.385v3h3l8.385-8.415Z"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path d="M16 5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
-                title="Eliminar"
-                (click)="delete.emit(connection)"
-              >
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M10 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M14 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                  <path
-                    d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                  <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
+              @if (isEvolutionApi(connection)) {
+                <!-- Evolution API actions -->
+                @if (connection.active) {
+                  <button
+                    type="button"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-green-200 bg-green-50 text-green-600 transition-colors hover:bg-green-100 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20"
+                    title="Conectar (escanear QR)"
+                    (click)="connectEvolution.emit(connection)"
+                  >
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-600 transition-colors hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20"
+                    title="Desconectar (cerrar sesión)"
+                    (click)="disconnectEvolution.emit(connection)"
+                  >
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                      <line x1="12" y1="2" x2="12" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                  title="Eliminar instancia"
+                  (click)="deleteEvolution.emit(connection)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M10 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M14 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              } @else {
+                <!-- Meta Cloud API actions -->
+                <button
+                  type="button"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20"
+                  title="Editar"
+                  (click)="edit.emit(connection)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 7h-1a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M20.385 6.585a2.1 2.1 0 0 0-2.97-2.97l-8.415 8.385v3h3l8.385-8.415Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M16 5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                  title="Eliminar"
+                  (click)="delete.emit(connection)"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M10 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M14 11v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              }
             </div>
           </td>
         </tr>
       } @empty {
         <tr>
-          <td colspan="7" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
+          <td colspan="6" class="px-5 py-10 text-center text-gray-500 dark:text-gray-400">
             No hay conexiones para mostrar.
           </td>
         </tr>

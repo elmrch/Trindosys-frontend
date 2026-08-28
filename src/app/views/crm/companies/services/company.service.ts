@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { ImportResult } from '../../../../shared/models/import.model';
 import { Page } from '../../../../shared/models/page.model';
 import { Company, CompanyRequest } from '../models/company.model';
 
@@ -44,5 +45,17 @@ export class CompanyService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  downloadTemplate(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/import/template`, {
+      responseType: 'blob',
+    });
+  }
+
+  importFromExcel(file: File): Observable<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImportResult>(`${this.baseUrl}/import`, formData);
   }
 }
