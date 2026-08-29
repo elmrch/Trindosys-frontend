@@ -1,6 +1,6 @@
-<div class="space-y-3">
+<div class="-m-4 flex h-[calc(100vh-4rem)] flex-col md:-m-6">
   <!-- Cabecera y Barra de Filtros Integradas (Estilo HubSpot en un solo bloque continuo) -->
-  <div class="rounded-md border border-gray-200 bg-white divide-y divide-gray-200 dark:border-gray-800 dark:bg-white/[0.03] dark:divide-gray-800">
+  <div class="shrink-0 border border-gray-200 bg-white divide-y divide-gray-200 dark:border-gray-800 dark:bg-white/[0.03] dark:divide-gray-800">
     
     <!-- Fila 1: Título y Acciones Principales -->
     <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
@@ -382,13 +382,13 @@
   </div>
 
   @if (errorMessage()) {
-    <p class="rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ errorMessage() }}</p>
+    <p class="shrink-0 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ errorMessage() }}</p>
   }
 
   @if (isLoading()) {
-    <p class="text-xs text-gray-500 dark:text-gray-400">Cargando...</p>
+    <p class="shrink-0 px-3 py-2 text-xs text-gray-500 dark:text-gray-400">Cargando...</p>
   } @else {
-    <div class="h-[75vh] min-h-0">
+    <div class="min-h-0 flex-1">
       <app-kanban-board
         [opportunities]="opportunities()"
         [stages]="stages()"
