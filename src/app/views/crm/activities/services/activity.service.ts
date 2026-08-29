@@ -10,6 +10,7 @@ import {
   CreateFollowUpRequest,
   CreateNoteRequest,
   CreateTaskRequest,
+  TaskStatus,
   UpdateActivityRequest,
 } from '../models/activity.model';
 
@@ -18,6 +19,17 @@ export class ActivityService {
   private readonly http = inject(HttpClient);
   private readonly customersUrl = `${environment.apiUrl}/crm/customers`;
   private readonly activitiesUrl = `${environment.apiUrl}/crm/activities`;
+
+  list(type?: ActivityType, status?: TaskStatus): Observable<Activity[]> {
+    let params = new HttpParams();
+    if (type) {
+      params = params.set('type', type);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+    return this.http.get<Activity[]>(this.activitiesUrl, { params });
+  }
 
   timeline(customerId: number, type?: ActivityType): Observable<Activity[]> {
     let params = new HttpParams();

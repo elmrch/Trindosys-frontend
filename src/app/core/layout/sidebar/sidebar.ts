@@ -32,6 +32,8 @@ const ICON_BY_STATE: Record<string, string> = {
   '/crm/customers':
     '<path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M11 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19.5 19v-1a3 3 0 0 0-2.5-2.96M15 4.13a3 3 0 0 1 0 5.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
   '/crm/opportunities': '<path d="M4 19V9m6 10V5m6 14v-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  '/crm/tasks':
+    '<path d="M9 6h11M9 12h11M9 18h11M4.5 5.5l1 1 2-2M4.5 11.5l1 1 2-2M4.5 17.5l1 1 2-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
   '/crm/channels': '<path d="M4 5h16M4 12h16M4 19h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   '/crm/conversations':
     '<path d="M4 4h16v11H8l-4 4V4Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',

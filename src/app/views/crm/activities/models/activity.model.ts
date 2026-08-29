@@ -7,6 +7,7 @@ export type TaskStatus = 'PENDING' | 'COMPLETED';
 export interface Activity {
   id: number;
   customerId: number;
+  customerName: string | null;
   type: ActivityType;
   authorId: number;
   authorName: string;
