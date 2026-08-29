@@ -5,8 +5,8 @@ import { Opportunity } from '../../models/opportunity.model';
 import { PipelineStage } from '../../models/pipeline-stage.model';
 import { OpportunityCard } from '../opportunity-card/opportunity-card';
 
-const EDGE_THRESHOLD_PX = 90;
-const SCROLL_STEP_PX = 24;
+const EDGE_THRESHOLD_PX = 120;
+const SCROLL_STEP_PX = 8;
 
 @Component({
   selector: 'app-kanban-board',
@@ -25,14 +25,85 @@ export class KanbanBoard {
 
   protected readonly dragOverStageId = signal<number | null>(null);
   protected readonly isPanning = signal(false);
+  protected readonly scrollProgress = signal(0);
+  protected readonly maxScroll = signal(0);
 
   private draggingOpportunity: Opportunity | null = null;
+  private autoScrollAnimFrame: number | null = null;
+  private autoScrollContainer: HTMLElement | null = null;
+  private autoScrollSpeed = 0;
+
+  private indicatorDragging = false;
+  private indicatorStartX = 0;
+  private indicatorStartScrollLeft = 0;
+  private indicatorContainer: HTMLElement | null = null;
+  private indicatorMoveListener: ((e: MouseEvent) => void) | null = null;
+  private indicatorUpListener: (() => void) | null = null;
 
   private panStartX = 0;
   private panStartScrollLeft = 0;
   private panContainer: HTMLElement | null = null;
   private panMoveListener: ((event: MouseEvent) => void) | null = null;
   private panUpListener: (() => void) | null = null;
+
+  protected onScroll(container: HTMLElement): void {
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    this.maxScroll.set(maxScroll);
+    if (maxScroll > 0) {
+      this.scrollProgress.set(container.scrollLeft / maxScroll);
+    } else {
+      this.scrollProgress.set(0);
+    }
+  }
+
+  protected scrollToStage(stage: PipelineStage, container: HTMLElement): void {
+    const index = this.stages().indexOf(stage);
+    if (index === -1) return;
+    const columnWidth = 320; // w-80 = 320px
+    container.scrollTo({ left: index * columnWidth, behavior: 'smooth' });
+  }
+
+  protected onIndicatorDragStart(event: MouseEvent, boardContainer: HTMLElement): void {
+    if (event.button !== 0) return;
+    event.preventDefault();
+
+    const indicator = event.currentTarget as HTMLElement;
+    if (!indicator) return;
+
+    this.indicatorDragging = true;
+    this.indicatorStartX = event.clientX;
+    this.indicatorStartScrollLeft = boardContainer.scrollLeft;
+    this.indicatorContainer = boardContainer;
+
+    this.indicatorMoveListener = (moveEvent: MouseEvent) => {
+      if (!this.indicatorDragging || !this.indicatorContainer) return;
+
+      const indicatorRect = indicator.getBoundingClientRect();
+      const deltaX = moveEvent.clientX - this.indicatorStartX;
+      const scrollRatio = deltaX / (indicatorRect.width / 2);
+      const maxScroll = this.indicatorContainer.scrollWidth - this.indicatorContainer.clientWidth;
+
+      this.indicatorContainer.scrollLeft = this.indicatorStartScrollLeft + scrollRatio * maxScroll;
+    };
+
+    this.indicatorUpListener = () => this.stopIndicatorDrag();
+
+    document.addEventListener('mousemove', this.indicatorMoveListener);
+    document.addEventListener('mouseup', this.indicatorUpListener);
+  }
+
+  private stopIndicatorDrag(): void {
+    this.indicatorDragging = false;
+    this.indicatorContainer = null;
+    if (this.indicatorMoveListener) {
+      document.removeEventListener('mousemove', this.indicatorMoveListener);
+      this.indicatorMoveListener = null;
+    }
+    if (this.indicatorUpListener) {
+      document.removeEventListener('mouseup', this.indicatorUpListener);
+      this.indicatorUpListener = null;
+    }
+  }
 
   // Pan-to-scroll: clic sostenido en el fondo del tablero (no en una tarjeta
   // ni en un botón) y arrastrar desplaza el scroll horizontal, como en Trello.
@@ -115,12 +186,47 @@ export class KanbanBoard {
   protected onBoardDragOver(event: DragEvent, container: HTMLElement): void {
     const rect = container.getBoundingClientRect();
     const x = event.clientX;
+    const distToLeft = x - rect.left;
+    const distToRight = rect.right - x;
 
-    if (x - rect.left < EDGE_THRESHOLD_PX) {
-      container.scrollLeft -= SCROLL_STEP_PX;
-    } else if (rect.right - x < EDGE_THRESHOLD_PX) {
-      container.scrollLeft += SCROLL_STEP_PX;
+    if (distToLeft < EDGE_THRESHOLD_PX) {
+      // Más rápido cuanto más cerca del borde
+      const ratio = 1 - distToLeft / EDGE_THRESHOLD_PX;
+      this.autoScrollSpeed = -(SCROLL_STEP_PX + ratio * 12);
+    } else if (distToRight < EDGE_THRESHOLD_PX) {
+      const ratio = 1 - distToRight / EDGE_THRESHOLD_PX;
+      this.autoScrollSpeed = SCROLL_STEP_PX + ratio * 12;
+    } else {
+      this.autoScrollSpeed = 0;
     }
+
+    if (this.autoScrollSpeed !== 0 && !this.autoScrollAnimFrame) {
+      this.autoScrollContainer = container;
+      this.startAutoScroll();
+    } else if (this.autoScrollSpeed === 0) {
+      this.stopAutoScroll();
+    }
+  }
+
+  private startAutoScroll(): void {
+    const tick = () => {
+      if (this.autoScrollContainer && this.autoScrollSpeed !== 0) {
+        this.autoScrollContainer.scrollLeft += this.autoScrollSpeed;
+        this.autoScrollAnimFrame = requestAnimationFrame(tick);
+      } else {
+        this.stopAutoScroll();
+      }
+    };
+    this.autoScrollAnimFrame = requestAnimationFrame(tick);
+  }
+
+  private stopAutoScroll(): void {
+    if (this.autoScrollAnimFrame) {
+      cancelAnimationFrame(this.autoScrollAnimFrame);
+      this.autoScrollAnimFrame = null;
+    }
+    this.autoScrollContainer = null;
+    this.autoScrollSpeed = 0;
   }
 
   protected onDragOver(stage: PipelineStage, event: DragEvent): void {
@@ -137,6 +243,7 @@ export class KanbanBoard {
   protected onDrop(stage: PipelineStage, event: DragEvent): void {
     event.preventDefault();
     this.dragOverStageId.set(null);
+    this.stopAutoScroll();
 
     const opportunity = this.draggingOpportunity;
     this.draggingOpportunity = null;

@@ -1,12 +1,14 @@
-<div
-  #board
-  class="flex h-full min-w-full overflow-x-auto divide-x divide-gray-200 border border-gray-200 bg-gray-100/30 dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-950/20"
-  [class.cursor-grab]="!isPanning()"
-  [class.cursor-grabbing]="isPanning()"
-  [class.select-none]="isPanning()"
-  (mousedown)="onPanStart($event, board)"
-  (dragover)="onBoardDragOver($event, board)"
->
+<div class="relative h-full">
+  <div
+    #board
+    class="flex h-full min-w-full overflow-x-auto divide-x divide-gray-200 border border-gray-200 bg-gray-100/30 dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-950/20"
+    [class.cursor-grab]="!isPanning()"
+    [class.cursor-grabbing]="isPanning()"
+    [class.select-none]="isPanning()"
+    (mousedown)="onPanStart($event, board)"
+    (dragover)="onBoardDragOver($event, board)"
+    (scroll)="onScroll(board)"
+  >
   @for (stage of stages(); track stage.id) {
     <div
       class="flex h-full w-80 min-w-[280px] shrink-0 flex-col bg-gray-50/40 transition-colors dark:bg-gray-900/30"
@@ -60,5 +62,24 @@
     <p class="p-6 text-sm text-gray-500 dark:text-gray-400">
       No hay etapas configuradas en el pipeline todavía.
     </p>
+  }
+  </div>
+
+  <!-- Scroll position indicator - draggable -->
+  @if (stages().length > 0) {
+    <div
+      class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-md border border-gray-200 bg-white/90 px-1.5 py-1 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/90 cursor-grab active:cursor-grabbing select-none"
+      (mousedown)="onIndicatorDragStart($event, board)"
+    >
+      @for (stage of stages(); track stage.id; let i = $index) {
+        <div
+          class="h-5 rounded-sm transition-all duration-150"
+          [class]="scrollProgress() > (i / stages().length - 0.1) && scrollProgress() < ((i + 1) / stages().length + 0.1)
+            ? 'w-5 bg-blue-500 dark:bg-blue-400'
+            : 'w-2 bg-gray-300 dark:bg-gray-600'"
+          title="{{ stage.name }}"
+        ></div>
+      }
+    </div>
   }
 </div>
