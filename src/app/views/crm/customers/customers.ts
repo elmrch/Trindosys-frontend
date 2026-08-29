@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SweetAlertService } from '../../../core/services/sweet-alert.service';
 import { ImportModal } from '../../../shared/components/import-modal/import-modal';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { CustomerForm } from './components/customer-form/customer-form';
 import { CustomerList, CustomerSortColumn } from './components/customer-list/customer-list';
 import { Customer } from './models/customer.model';
@@ -12,7 +13,7 @@ import { Advisor } from '../../../shared/models/advisor.model';
 
 @Component({
   selector: 'app-customers',
-  imports: [CustomerList, CustomerForm, ImportModal],
+  imports: [CustomerList, CustomerForm, ImportModal, PaginationComponent],
   templateUrl: './customers.html',
 })
 export class Customers implements OnInit {
@@ -28,7 +29,8 @@ export class Customers implements OnInit {
   protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly page = signal(0);
-  protected readonly pageSize = 10;
+  protected readonly pageSize = signal(10);
+  protected readonly pageSizeOptions = [10, 25, 50, 100];
   protected readonly totalPages = signal(0);
   protected readonly totalElements = signal(0);
 
@@ -353,7 +355,7 @@ export class Customers implements OnInit {
     this.errorMessage.set(null);
     const sort = `${this.sortColumn()},${this.sortDirection()}`;
 
-    this.customerService.list(this.page(), this.pageSize, sort).subscribe({
+    this.customerService.list(this.page(), this.pageSize(), sort).subscribe({
       next: (result) => {
         this.customers.set(result.content);
         this.totalPages.set(result.totalPages);
@@ -378,11 +380,17 @@ export class Customers implements OnInit {
     this.load();
   }
 
-  protected goToPage(page: number): void {
-    if (page < 0 || page >= this.totalPages()) {
+  protected onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages()) {
       return;
     }
-    this.page.set(page);
+    this.page.set(page - 1);
+    this.load();
+  }
+
+  protected onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.page.set(0);
     this.load();
   }
 

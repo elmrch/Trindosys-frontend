@@ -1,0 +1,75 @@
+<div class="flex items-center justify-between px-4 py-3 dark:bg-slate-800 border-t dark:border-slate-700">
+    <!-- Información de registros -->
+    <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-700 dark:text-gray-300">
+            Mostrando
+            <span class="font-medium">{{ startItem }}</span>
+            -
+            <span class="font-medium">{{ endItem }}</span>
+            de
+            <span class="font-medium">{{ totalItems }}</span>
+            registros
+        </span>
+    </div>
+
+    <!-- Controles de paginación -->
+    <div class="flex items-center gap-4">
+        <!-- Selector de tamaño de página -->
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-700 dark:text-gray-300">
+                Registros por página:
+            </label>
+            <select [value]="pageSize" (change)="onPageSizeChange($event)"
+                class="flex h-9 w-[80px] items-center justify-between rounded-md border border-input bg-background dark:bg-slate-700 dark:text-white dark:border-slate-600 px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+            </select>
+        </div>
+
+        <!-- Botones de navegación -->
+        <div class="flex items-center gap-1">
+            <!-- Primera página -->
+            <button (click)="goToFirstPage()" [disabled]="isFirstPage" [class.opacity-50]="isFirstPage"
+                [class.cursor-not-allowed]="isFirstPage"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background dark:bg-slate-700 dark:text-white dark:border-slate-600 hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none h-9 w-9">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m11 17-5-5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="m18 17-5-5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+
+            <!-- Página anterior -->
+            <button (click)="goToPreviousPage()" [disabled]="isFirstPage" [class.opacity-50]="isFirstPage"
+                [class.cursor-not-allowed]="isFirstPage"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background dark:bg-slate-700 dark:text-white dark:border-slate-600 hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none h-9 w-9">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+
+            <!-- Indicador de página -->
+            <span class="text-sm text-gray-700 dark:text-gray-300 px-3">
+                Página <span class="font-medium">{{ currentPage }}</span> de <span class="font-medium">{{ totalPages
+                    }}</span>
+            </span>
+
+            <!-- Página siguiente -->
+            <button (click)="goToNextPage()" [disabled]="isLastPage" [class.opacity-50]="isLastPage"
+                [class.cursor-not-allowed]="isLastPage"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background dark:bg-slate-700 dark:text-white dark:border-slate-600 hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none h-9 w-9">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+
+            <!-- Última página -->
+            <button (click)="goToLastPage()" [disabled]="isLastPage" [class.opacity-50]="isLastPage"
+                [class.cursor-not-allowed]="isLastPage"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background dark:bg-slate-700 dark:text-white dark:border-slate-600 hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none h-9 w-9">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m6 17 5-5-5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="m13 17 5-5-5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>

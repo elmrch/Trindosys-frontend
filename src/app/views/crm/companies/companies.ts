@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SweetAlertService } from '../../../core/services/sweet-alert.service';
 import { ImportModal } from '../../../shared/components/import-modal/import-modal';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ImportResult } from '../../../shared/models/import.model';
 import { CompanyForm } from './components/company-form/company-form';
 import { CompanyList } from './components/company-list/company-list';
@@ -10,7 +11,7 @@ import { CompanyService } from './services/company.service';
 
 @Component({
   selector: 'app-companies',
-  imports: [CompanyList, CompanyForm, ImportModal],
+  imports: [CompanyList, CompanyForm, ImportModal, PaginationComponent],
   templateUrl: './companies.html',
 })
 export class Companies implements OnInit {
@@ -22,6 +23,11 @@ export class Companies implements OnInit {
   protected readonly searchTerm = signal('');
   protected readonly isLoading = signal(false);
 
+  protected readonly page = signal(0);
+  protected readonly pageSize = signal(10);
+  protected readonly pageSizeOptions = [10, 25, 50, 100];
+  protected readonly totalElements = signal(0);
+
   protected readonly isFormOpen = signal(false);
   protected readonly editingCompany = signal<Company | null>(null);
 
@@ -29,28 +35,17 @@ export class Companies implements OnInit {
 
   protected readonly isAdmin = computed(() => this.authService.currentUser()?.role === 'ADMIN');
 
-  protected readonly filteredCompanies = computed(() => {
-    const term = this.searchTerm().trim().toLowerCase();
-    if (!term) {
-      return this.companies();
-    }
-    return this.companies().filter(
-      (company) =>
-        (company.name ?? '').toLowerCase().includes(term) ||
-        (company.taxId ?? '').toLowerCase().includes(term) ||
-        (company.email ?? '').toLowerCase().includes(term),
-    );
-  });
-
   ngOnInit(): void {
     this.load();
   }
 
   protected load(): void {
     this.isLoading.set(true);
-    this.companyService.list(0, 100).subscribe({
+    const search = this.searchTerm().trim() || undefined;
+    this.companyService.list(this.page(), this.pageSize(), search).subscribe({
       next: (result) => {
         this.companies.set(result.content);
+        this.totalElements.set(result.totalElements);
         this.isLoading.set(false);
       },
       error: () => {
@@ -58,6 +53,26 @@ export class Companies implements OnInit {
         this.sweetAlert.error('No se pudieron cargar las empresas.');
       },
     });
+  }
+
+  protected onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.page.set(0);
+    this.load();
+  }
+
+  protected onPageChange(page: number): void {
+    if (page < 1) {
+      return;
+    }
+    this.page.set(page - 1);
+    this.load();
+  }
+
+  protected onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.page.set(0);
+    this.load();
   }
 
   protected openCreateForm(): void {

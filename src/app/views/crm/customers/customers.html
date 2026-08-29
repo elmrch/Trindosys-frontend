@@ -1,6 +1,6 @@
-<div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+<div class="-m-4 flex h-[calc(100vh-4rem)] flex-col border border-gray-200 bg-white md:-m-6 dark:border-gray-800 dark:bg-white/[0.03]">
   <!-- Header -->
-  <div class="flex flex-col gap-4 border-b border-gray-200 p-6 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
+  <div class="flex shrink-0 flex-col gap-4 border-b border-gray-200 p-6 dark:border-gray-800 md:flex-row md:items-center md:justify-between">
     <div class="flex items-center gap-3">
       <div class="rounded-lg bg-brand-50 p-2 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,7 +53,7 @@
   }
 
   <!-- Barra de Filtros estilo CRM / HubSpot con el diseño y paleta del ERP -->
-  <div class="border-b border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-white/[0.02]">
+  <div class="shrink-0 border-b border-gray-200 bg-gray-50/50 p-3 dark:border-gray-800 dark:bg-white/[0.02]">
     <!-- Fila 1: Filtros de Píldoras -->
     <div class="flex flex-wrap items-center gap-2">
       <!-- Filtro Asesor / Contact owner -->
@@ -479,14 +479,16 @@
     </div>
   </div>
 
-  @if (errorMessage()) {
-    <p class="m-4 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
-  }
+  <div class="flex min-h-0 flex-1 flex-col">
+    @if (errorMessage()) {
+      <p class="m-4 shrink-0 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{{ errorMessage() }}</p>
+    }
 
-  @if (isLoading()) {
-    <p class="p-6 text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
-  } @else {
-    <app-customer-list
+    @if (isLoading()) {
+      <p class="p-6 text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+    } @else {
+      <div class="min-h-0 flex-1">
+        <app-customer-list
       [customers]="filteredCustomers()"
       [advisors]="advisors()"
       [sortColumn]="sortColumn()"
@@ -494,33 +496,19 @@
       (edit)="openEditForm($event)"
       (deactivate)="onDeactivate($event)"
       (sort)="onSort($event)"
-    />
+      />
 
-    <!-- Paginación -->
-    <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-200 p-4 dark:border-gray-800 sm:flex-row">
-      <p class="text-sm text-gray-500 dark:text-gray-400">{{ totalElements() }} Contactos en total</p>
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          [disabled]="page() === 0"
-          class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
-          (click)="goToPage(page() - 1)"
-        >
-          « Anterior
-        </button>
-        <span class="text-sm text-gray-600 dark:text-gray-300">
-          Página {{ totalPages() === 0 ? 0 : page() + 1 }} de {{ totalPages() }}
-        </span>
-        <button
-          type="button"
-          [disabled]="page() + 1 >= totalPages()"
-          class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
-          (click)="goToPage(page() + 1)"
-        >
-          Siguiente »
-        </button>
       </div>
-    </div>
+
+      <!-- Paginación -->
+      <app-pagination
+        [totalItems]="totalElements()"
+        [currentPage]="page() + 1"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="pageSizeOptions"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
   }
 </div>
 
