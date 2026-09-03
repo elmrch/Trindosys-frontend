@@ -66,7 +66,7 @@
 
                 <div
                   class="grid overflow-hidden transition-all duration-300 ease-in-out"
-                  [style.grid-template-rows]="isOpen(node) || !sidebar.isSidebarVisible ? '1fr' : '0fr'"
+                  [style.grid-template-rows]="isOpen(node) ? '1fr' : '0fr'"
                 >
                   <div class="overflow-hidden">
                     <ul class="mt-1 flex flex-col gap-1" [class.pl-2]="sidebar.isSidebarVisible">

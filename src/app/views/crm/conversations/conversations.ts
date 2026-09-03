@@ -181,6 +181,31 @@ export class Conversations implements OnInit {
       });
   }
 
+  protected sendTemplateMessage(payload: { plantillaId: number; variables: Record<string, string>; replyToMessageId: number | null }): void {
+    const conversation = this.selectedConversation();
+    if (!conversation) {
+      return;
+    }
+
+    this.isSending.set(true);
+    this.conversationService
+      .sendTemplateMessage(conversation.id, {
+        plantillaId: payload.plantillaId,
+        variables: payload.variables,
+        replyToMessageId: payload.replyToMessageId,
+      })
+      .subscribe({
+        next: (message) => {
+          this.isSending.set(false);
+          this.appendMessage(message);
+        },
+        error: () => {
+          this.isSending.set(false);
+          this.errorMessage.set('No se pudo enviar la plantilla.');
+        },
+      });
+  }
+
   protected sendAttachments(payload: { content: string; files: File[]; replyToMessageId: number | null }): void {
     const conversation = this.selectedConversation();
     if (!conversation) {

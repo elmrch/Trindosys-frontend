@@ -1,17 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Plantilla } from '../../../templates/models/template.model';
+import { TemplateService } from '../../../templates/services/template.service';
 import { Channel, ChannelConnectionRequest, ChannelConnectionWithChannel, ChannelProvider } from '../../models/channel.model';
 import { ChannelService } from '../../services/channel.service';
 
 @Component({
   selector: 'app-connection-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './connection-form.html',
 })
 export class ConnectionForm {
   private readonly fb = inject(FormBuilder);
   private readonly channelService = inject(ChannelService);
+  private readonly templateService = inject(TemplateService);
 
   readonly channels = input.required<Channel[]>();
   readonly connection = input<ChannelConnectionWithChannel | null>(null);
@@ -24,6 +28,7 @@ export class ConnectionForm {
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isEditMode = computed(() => this.connection() !== null);
+  protected readonly templates = signal<Plantilla[]>([]);
 
   protected readonly form = this.fb.nonNullable.group({
     channelId: [0, [Validators.required, Validators.min(1)]],
@@ -33,12 +38,15 @@ export class ConnectionForm {
     token: ['', Validators.required],
     webhookUrl: [''],
     active: [true],
+    autoReplyTemplateId: [null as number | null],
   });
 
   protected readonly isEvolutionApi = computed(() => this.form.controls.provider.value === 'evolution-api');
   protected readonly isMetaCloudApi = computed(() => this.form.controls.provider.value === 'meta-cloud-api');
 
   constructor() {
+    this.loadTemplates();
+
     effect(() => {
       const existing = this.connection();
       const preChannelId = this.preselectedChannelId();
@@ -53,6 +61,7 @@ export class ConnectionForm {
           token: '',
           webhookUrl: existing.webhookUrl ?? '',
           active: existing.active,
+          autoReplyTemplateId: existing.autoReplyTemplateId ?? null,
         });
         this.form.controls.externalId.disable();
         this.form.controls.webhookUrl.disable();
@@ -86,6 +95,13 @@ export class ConnectionForm {
     });
   }
 
+  private loadTemplates(): void {
+    this.templateService.listActivas(1).subscribe({
+      next: (list) => this.templates.set(list),
+      error: () => {},
+    });
+  }
+
   protected onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -101,6 +117,7 @@ export class ConnectionForm {
       token: raw.token,
       webhookUrl: raw.webhookUrl || undefined,
       active: raw.active,
+      autoReplyTemplateId: raw.autoReplyTemplateId || null,
     };
 
     this.errorMessage.set(null);

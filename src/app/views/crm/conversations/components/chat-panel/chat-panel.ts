@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { Component, ElementRef, OnDestroy, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { getInitials } from '../../../../../shared/utils/initials.util';
+import { Plantilla, PlantillaVariable } from '../../../templates/models/template.model';
+import { TemplateService } from '../../../templates/services/template.service';
 import { ConversationStatus, ConversationSummary, Message, MessageAttachment } from '../../models/conversation.model';
 import { ConversationService } from '../../services/conversation.service';
 
@@ -34,6 +36,7 @@ const STATUS_OPTIONS: { label: string; value: ConversationStatus }[] = [
 })
 export class ChatPanel implements OnDestroy {
   private readonly conversationService = inject(ConversationService);
+  private readonly templateService = inject(TemplateService);
 
   readonly conversation = input<ConversationSummary | null>(null);
   readonly messages = input.required<Message[]>();
@@ -43,6 +46,7 @@ export class ChatPanel implements OnDestroy {
 
   readonly send = output<{ content: string; replyToMessageId: number | null }>();
   readonly sendAttachments = output<{ content: string; files: File[]; replyToMessageId: number | null }>();
+  readonly sendTemplate = output<{ plantillaId: number; variables: Record<string, string>; replyToMessageId: number | null }>();
   readonly loadOlder = output<void>();
   readonly statusChange = output<{ conversation: ConversationSummary; status: ConversationStatus }>();
   readonly toggleProfile = output<void>();
@@ -81,6 +85,12 @@ export class ChatPanel implements OnDestroy {
   protected readonly searchResults = signal<Message[]>([]);
   protected readonly isSearching = signal(false);
   protected readonly searchNotice = signal<string | null>(null);
+
+  protected readonly isTemplatePickerOpen = signal(false);
+  protected readonly templates = signal<Plantilla[]>([]);
+  protected readonly selectedTemplate = signal<Plantilla | null>(null);
+  protected readonly templateVariables = signal<Record<string, string>>({});
+  protected readonly isLoadingTemplates = signal(false);
 
   private mediaRecorder: MediaRecorder | null = null;
   private recordedChunks: Blob[] = [];
@@ -356,6 +366,73 @@ export class ChatPanel implements OnDestroy {
     if (conversation) {
       this.exportChat.emit(conversation);
     }
+  }
+
+  protected toggleTemplatePicker(): void {
+    if (this.isTemplatePickerOpen()) {
+      this.isTemplatePickerOpen.set(false);
+      this.selectedTemplate.set(null);
+      this.templateVariables.set({});
+    } else {
+      this.loadTemplates();
+      this.isTemplatePickerOpen.set(true);
+    }
+  }
+
+  private loadTemplates(): void {
+    this.isLoadingTemplates.set(true);
+    this.templateService.listActivas(1).subscribe({
+      next: (list) => {
+        this.templates.set(list);
+        this.isLoadingTemplates.set(false);
+      },
+      error: () => {
+        this.isLoadingTemplates.set(false);
+      },
+    });
+  }
+
+  protected selectTemplate(template: Plantilla): void {
+    this.selectedTemplate.set(template);
+    const vars: Record<string, string> = {};
+    this.templateVariables.set(vars);
+  }
+
+  protected setTemplateVariable(key: string, value: string): void {
+    this.templateVariables.update((current) => ({ ...current, [key]: value }));
+  }
+
+  protected sendTemplateMessage(): void {
+    const template = this.selectedTemplate();
+    if (!template) {
+      return;
+    }
+    const replyToMessageId = this.replyingTo()?.id ?? null;
+    this.sendTemplate.emit({
+      plantillaId: template.id,
+      variables: this.templateVariables(),
+      replyToMessageId,
+    });
+    this.isTemplatePickerOpen.set(false);
+    this.selectedTemplate.set(null);
+    this.templateVariables.set({});
+    this.replyingTo.set(null);
+  }
+
+  protected cancelTemplatePicker(): void {
+    this.isTemplatePickerOpen.set(false);
+    this.selectedTemplate.set(null);
+    this.templateVariables.set({});
+  }
+
+  protected getTemplateVars(): PlantillaVariable[] {
+    const vars: PlantillaVariable[] = [
+      { key: 'nombre_contacto', label: 'Nombre del contacto', entidad: 'CLIENTE', campo: 'nombre' },
+      { key: 'email', label: 'Email', entidad: 'CLIENTE', campo: 'email' },
+      { key: 'telefono', label: 'Teléfono', entidad: 'CLIENTE', campo: 'phone' },
+      { key: 'empresa_cliente', label: 'Empresa', entidad: 'CLIENTE', campo: 'company.name' },
+    ];
+    return vars;
   }
 
   protected toggleSearch(): void {

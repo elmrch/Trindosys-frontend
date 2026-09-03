@@ -9,6 +9,7 @@ import {
   ConversationSummary,
   Message,
   SendMessageRequest,
+  SendTemplateMessageRequest,
   UpdateConversationStatusRequest,
 } from '../models/conversation.model';
 
@@ -51,6 +52,10 @@ export class ConversationService {
 
   sendMessage(conversationId: number, request: SendMessageRequest): Observable<Message> {
     return this.http.post<Message>(`${this.baseUrl}/${conversationId}/messages`, request);
+  }
+
+  sendTemplateMessage(conversationId: number, request: SendTemplateMessageRequest): Observable<Message> {
+    return this.http.post<Message>(`${this.baseUrl}/${conversationId}/messages/template`, request);
   }
 
   sendAttachments(

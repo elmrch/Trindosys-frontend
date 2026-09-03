@@ -17,6 +17,7 @@ export interface ChannelConnection {
   webhookUrl: string | null;
   provider: ChannelProvider;
   active: boolean;
+  autoReplyTemplateId: number | null;
   createdAt: string;
   createdBy: number | null;
   updatedAt: string | null;
@@ -31,6 +32,7 @@ export interface ChannelConnectionRequest {
   webhookUrl?: string;
   provider: ChannelProvider;
   active: boolean;
+  autoReplyTemplateId?: number | null;
 }
 
 export interface ChannelConnectionWithChannel extends ChannelConnection {

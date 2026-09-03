@@ -9,6 +9,7 @@ import { conversationsRoutes } from './views/crm/conversations/conversations.rou
 import { customersRoutes } from './views/crm/customers/customers.routes';
 import { opportunitiesRoutes } from './views/crm/opportunities/opportunities.routes';
 import { tasksRoutes } from './views/crm/tasks/tasks.routes';
+import { templatesRoutes } from './views/crm/templates/templates.routes';
 import { securityRoutes } from './views/security/users/security.routes';
 import { authGuard } from './core/auth/auth.guard';
 
@@ -28,6 +29,7 @@ export const routes: Routes = [
       ...customersRoutes,
       ...opportunitiesRoutes,
       ...tasksRoutes,
+      ...templatesRoutes,
       ...securityRoutes,
     ],
   },

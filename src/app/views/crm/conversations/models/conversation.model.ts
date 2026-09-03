@@ -46,6 +46,12 @@ export interface SendMessageRequest {
   replyToMessageId?: number | null;
 }
 
+export interface SendTemplateMessageRequest {
+  plantillaId: number;
+  variables?: Record<string, string>;
+  replyToMessageId?: number | null;
+}
+
 export interface AgentInboxEvent {
   type: string;
   conversation: ConversationSummary;
